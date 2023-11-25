@@ -16,25 +16,30 @@ quit() {
 }
 
 # Change directory before doing anything
+echo "----------------------------------------"
 if [ -z $SETUP_DIR ]; then
     SETUP_DIR=~
 fi
 cd $SETUP_DIR || quit "Failed to change directory to home"
+echo "Changed directory to $SETUP_DIR"
 
 # Configure the console keyboard layout and font
+echo "----------------------------------------"
 curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/ubuntu/us-vim.kmap >us-vim.kmap || quit "Failed to download console keyboard layout"
 loadkeys us-vim.kmap || quit "Failed to set console keyboard layout"
 setfont ter-132b || quit "Failed to set console font"
 
 # Ensure a stable internet connection
+echo "----------------------------------------"
 if [ -z $SETUP_PING ]; then
     SETUP_PING=1.1.1.1
 fi
-if ! ping -c 3 $SETUP_PING; then
-    quit "Failed to ping $SETUP_PING. Check your internet connection."
+if ! ping -c 1 $SETUP_PING; then
+    quit "Failed to get a response from $SETUP_PING. Check your internet connection."
 fi
 
 # Find a suitable disk to partition
+echo "----------------------------------------"
 if [ -z $SETUP_DISK ]; then
     SETUP_LSBLK=$(lsblk -bp | grep --color=never " disk ")
     if [ -z $SETUP_DISK_MIN_SIZE ]; then
@@ -61,9 +66,9 @@ if [ -z $SETUP_DISK ]; then
         quit "Failed to find a disk that is larger than the minimum size requirement ($SETUP_DISK_MIN_SIZE bytes)"
     fi
 fi
-
 echo "Selected disk: $SETUP_DISK"
 
+echo "----------------------------------------"
 # # Partition the selected disk
 # if ! cat /sys/firmware/efi/fw_platform_size >>null 2>>null; then
 #     echo "This system is BIOS bootable only"
@@ -84,5 +89,6 @@ echo "Selected disk: $SETUP_DISK"
 #     quit "Unable to identify available boot modes. Refer to the Arch Linux installation guide for help."
 # fi
 
+echo "----------------------------------------"
 # quit "Successfully installed Arch Linux" 0
 quit "end of script" 0
