@@ -3,7 +3,6 @@
 # ---- Run this script as root in the Arch Linux live environment ---- #
 # Arch Linux installation guide: https://wiki.archlinux.org/title/installation_guide
 
-# Define utility functions
 quit() {
     echo "$1"
     if test -f null; then
@@ -15,22 +14,16 @@ quit() {
     exit $2
 }
 
-# Change directory before doing anything
 echo "----------------------------------------"
+echo "Changing directory before doing anything else..."
 if [ -z $SETUP_DIR ]; then
     SETUP_DIR=~
 fi
 cd $SETUP_DIR || quit "Failed to change directory to home"
 echo "Changed directory to $SETUP_DIR"
 
-# Configure the console keyboard layout and font
 echo "----------------------------------------"
-curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/ubuntu/us-vim.kmap >us-vim.kmap || quit "Failed to download console keyboard layout"
-loadkeys us-vim.kmap || quit "Failed to set console keyboard layout"
-setfont ter-132b || quit "Failed to set console font"
-
-# Ensure a stable internet connection
-echo "----------------------------------------"
+echo "Checking internet connectivity..."
 if [ -z $SETUP_PING ]; then
     SETUP_PING=1.1.1.1
 fi
@@ -38,14 +31,20 @@ if ! ping -c 1 $SETUP_PING; then
     quit "Failed to get a response from $SETUP_PING. Check your internet connection."
 fi
 
-# Find a suitable disk to partition
 echo "----------------------------------------"
+echo "Setting console keyboard layout and font..."
+curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/ubuntu/us-vim.kmap >us-vim.kmap || quit "Failed to download console keyboard layout"
+loadkeys us-vim.kmap || quit "Failed to set console keyboard layout"
+setfont ter-132b || quit "Failed to set console font"
+
+echo "----------------------------------------"
+echo "Selecting a suitable disk to partiion..."
 if [ -z $SETUP_DISK ]; then
     SETUP_LSBLK=$(lsblk -bp | grep --color=never " disk ")
-    if [ -z $SETUP_DISK_MIN_SIZE ]; then
-        SETUP_DISK_MIN_SIZE=10000000000 # Minimum disk size in bytes
+    if [ -z $SETUP_DISK_MIN_BYTES ]; then
+        SETUP_DISK_MIN_BYTES=10737418240
     fi
-    SETUP_DISK_SIZE=$SETUP_DISK_MIN_SIZE
+    SETUP_DISK_SIZE=$SETUP_DISK_MIN_BYTES
     while read -r SETUP_DISK_CANDIDATE; do
         SETUP_DISK_CANDIDATE_INDEX=0
         for SETUP_DISK_CANDIDATE_FIELD in $SETUP_DISK_CANDIDATE; do
@@ -63,13 +62,13 @@ if [ -z $SETUP_DISK ]; then
         fi
     done <<<"$SETUP_LSBLK"
     if [ -z $SETUP_DISK ]; then
-        quit "Failed to find a disk that is larger than the minimum size requirement ($SETUP_DISK_MIN_SIZE bytes)"
+        quit "Failed to find a disk that is larger than the minimum size requirement ($SETUP_DISK_MIN_BYTES bytes)"
     fi
 fi
 echo "Selected disk: $SETUP_DISK"
 
 echo "----------------------------------------"
-# # Partition the selected disk
+echo "Partitioning and formatting $SETUP_DISK..."
 # if ! cat /sys/firmware/efi/fw_platform_size >>null 2>>null; then
 #     echo "This system is BIOS bootable only"
 #     (
