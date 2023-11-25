@@ -41,11 +41,11 @@ if [ -z $SETUP_DISK ]; then
         SETUP_DISK_MIN_SIZE=10000000000 # Minimum disk size in bytes
     fi
     SETUP_DISK_SIZE=$SETUP_DISK_MIN_SIZE
-    while read -r disk; do
+    while read -r SETUP_DISK_CANDIDATE; do
         SETUP_DISK_CANDIDATE_INDEX=0
         for SETUP_DISK_CANDIDATE_FIELD in $SETUP_DISK_CANDIDATE; do
             SETUP_DISK_CANDIDATE_INDEX=$(($SETUP_DISK_CANDIDATE_INDEX + 1))
-            eval SETUP_DISK_CANDIDATE_FIELD_$SETUP_DISK_CANDIDATE_INDEX
+            eval SETUP_DISK_CANDIDATE_FIELD_$SETUP_DISK_CANDIDATE_INDEX=$SETUP_DISK_CANDIDATE_FIELD
         done
         if ! [ $SETUP_DISK_CANDIDATE_INDEX -lt 7 ]; then
             echo "Ignoring mounted disk: $SETUP_DISK_CANDIDATE_FIELD_1"
