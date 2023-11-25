@@ -23,9 +23,10 @@ curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/setup.sh 
 
 ## **TODO**
 
-- [ ] Partition disks
+- [X] Partition disks
 - [ ] Install the Linux kernel, core utilities, and a boot loader.
 - [ ] Install additional command-line tools and their dependencies (NeoVim, Git, Clang).
+- [ ] Ensure proper functionality with UEFI boot mode
 - [ ] Install a display server (possibly Wayland but most likely Xorg).
 - [ ] Install a window manager (DWM or another lightweight alternative).
 - [ ] Install essential GUI applications (firefox).
