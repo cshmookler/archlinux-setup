@@ -68,58 +68,119 @@ fi
 echo "Selected disk: $SETUP_DISK"
 
 echo "----------------------------------------"
-echo "Partitioning, formatting, and mounting $SETUP_DISK..."
-if ! cat /sys/firmware/efi/fw_platform_size >>null 2>>null; then
-    echo "This system is BIOS bootable only"
-    SETUP_BOOT_MODE=BIOS
-    (
-        echo o # new MBR partition table
-        echo n # new partition
-        echo p # primary partition
-        echo 1 # partiion number
-        echo   # start at the first sector
-        echo   # reserve the entire disk
-        echo a # set the bootable flag
-        echo w # write changes
-    ) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
-    SETUP_DISK_ROOT=$SETUP_DISK"1"
-    mkfs.ext4 $SETUP_DISK_ROOT || quit "Failed to format the root partition: $SETUP_DISK_ROOT"
-    SETUP_DISK_ROOT_MOUNT=/mnt
-    mount --mkdir $SETUP_DISK_ROOT $SETUP_DISK_ROOT_MOUNT || quit "Failed to mount $SETUP_DISK_ROOT -> $SETUP_DISK_ROOT_MOUNT"
-elif cat /sys/firmware/efi/fw_platform_size | grep -q 32; then
-    echo "This system is 32-bit UEFI bootable"
-    SETUP_BOOT_MODE=UEFI-32
-elif cat /sys/firmware/efi/fw_platform_size | grep -q 64; then
-    echo "This system is 64-bit UEFI bootable"
-    SETUP_BOOT_MODE=UEFI-64
-else
-    quit "Unable to identify available boot modes. Refer to the Arch Linux installation guide for help."
-fi
+echo "Partitioning, formatting, and mounting $SETUP_DISK"
+# if ! cat /sys/firmware/efi/fw_platform_size >>null 2>>null; then
+# echo "This system is BIOS bootable only"
+SETUP_BOOT_MODE=BIOS
+(
+    echo o # new MBR partition table
+    echo n # new root partition
+    echo p # primary partition
+    echo 1 # root partiion number
+    echo   # start at the first sector
+    echo   # reserve the entire disk
+    echo a # set the bootable flag
+    echo w # write changes
+) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
+SETUP_DISK_ROOT=$SETUP_DISK"1"
+echo "Created root partition: $SETUP_DISK_ROOT"
+mkfs.ext4 $SETUP_DISK_ROOT || quit "Failed to format the root partition: $SETUP_DISK_ROOT"
+echo "Formatted root partition with EXT4"
+SETUP_DISK_ROOT_MOUNT=/mnt
+mount --mkdir $SETUP_DISK_ROOT $SETUP_DISK_ROOT_MOUNT || quit "Failed to mount $SETUP_DISK_ROOT -> $SETUP_DISK_ROOT_MOUNT"
+echo "Mounted root partition to $SETUP_DISK_ROOT_MOUNT"
+# elif cat /sys/firmware/efi/fw_platform_size | grep -q 32; then
+#     echo "This system is 32-bit UEFI bootable"
+#     SETUP_BOOT_MODE=UEFI-32
+# elif cat /sys/firmware/efi/fw_platform_size | grep -q 64; then
+#     echo "This system is 64-bit UEFI bootable"
+#     SETUP_BOOT_MODE=UEFI-64
+# else
+#     quit "Unable to identify available boot modes. Refer to the Arch Linux installation guide for help."
+# fi
 
-if [ "$SETUP_BOOT_MODE" = "UEFI-32" ] || [ "$SETUP_BOOT_MODE" = "UEFI-64" ]; then
-    (
-        echo g     # new GPT partition table
-        echo n     # new EFI partition
-        echo 1     # EFI partiion number
-        echo       # start at the first sector
-        echo +512M # reserve 512 MiB
-        echo t     # change EFI partition type
-        echo 1     # change partition type to EFI System
-        echo n     # new partition
-        echo 2     # partition number
-        echo       # start at the end of the EFI partition
-        echo       # reserve the rest of the disk
-        echo w     # write changes
-    ) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
-    SETUP_DISK_EFI=$SETUP_DISK"1"
-    SETUP_DISK_ROOT=$SETUP_DISK"2"
-    mkfs.fat -F 32 $SETUP_DISK_EFI || quit "Failed to format the EFI partition: $SETUP_DISK_EFI"
-    mkfs.ext4 $SETUP_DISK_ROOT || quit "Failed to format the root partition: $SETUP_DISK_ROOT"
-    SETUP_DISK_EFI_MOUNT=/mnt/boot
-    SETUP_DISK_ROOT_MOUNT=/mnt
-    mount --mkdir $SETUP_DISK_EFI $SETUP_DISK_EFI_MOUNT || quit "Failed to mount $SETUP_DISK_EFI -> $SETUP_DISK_EFI_MOUNT"
-    mount --mkdir $SETUP_DISK_ROOT $SETUP_DISK_ROOT_MOUNT || quit "Failed to mount $SETUP_DISK_ROOT -> $SETUP_DISK_ROOT_MOUNT"
+# if [ "$SETUP_BOOT_MODE" = "UEFI-32" ] || [ "$SETUP_BOOT_MODE" = "UEFI-64" ]; then
+#     (
+#         echo g     # new GPT partition table
+#         echo n     # new EFI partition
+#         echo 1     # EFI partiion number
+#         echo       # start at the first sector
+#         echo +512M # reserve 512 MiB
+#         echo t     # change EFI partition type
+#         echo 1     # change partition type to EFI System
+#         echo n     # new root partition
+#         echo 2     # root partition number
+#         echo       # start at the end of the EFI partition
+#         echo       # reserve the rest of the disk
+#         echo w     # write changes
+#     ) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
+#     SETUP_DISK_EFI=$SETUP_DISK"1"
+#     SETUP_DISK_ROOT=$SETUP_DISK"2"
+#     echo "Created EFI partition: $SETUP_DISK_EFI"
+#     echo "Created root partition: $SETUP_DISK_ROOT"
+#     mkfs.fat -F 32 $SETUP_DISK_EFI || quit "Failed to format the EFI partition: $SETUP_DISK_EFI"
+#     mkfs.ext4 $SETUP_DISK_ROOT || quit "Failed to format the root partition: $SETUP_DISK_ROOT"
+#     echo "Formatted EFI partition with FAT32"
+#     echo "Formatted root partition with EXT4"
+#     SETUP_DISK_EFI_MOUNT=/mnt/boot
+#     SETUP_DISK_ROOT_MOUNT=/mnt
+#     mount --mkdir $SETUP_DISK_EFI $SETUP_DISK_EFI_MOUNT || quit "Failed to mount $SETUP_DISK_EFI -> $SETUP_DISK_EFI_MOUNT"
+#     mount --mkdir $SETUP_DISK_ROOT $SETUP_DISK_ROOT_MOUNT || quit "Failed to mount $SETUP_DISK_ROOT -> $SETUP_DISK_ROOT_MOUNT"
+#     echo "Mounted EFI partition to $SETUP_DISK_EFI_MOUNT"
+#     echo "Mounted root partition to $SETUP_DISK_ROOT_MOUNT"
+# fi
+
+echo "----------------------------------------"
+echo "Installing packages with pacstrap..."
+pacstrap -Kc $SETUP_DISK_ROOT_MOUNT base base-devel linux linux-firmware networkmanager limine man-db man-pages texinfo vim || quit "Failed to install essential packages"
+
+echo "----------------------------------------"
+echo "Generating fstab..."
+genfstab -U $SETUP_DISK_ROOT_MOUNT >>$SETUP_DISK_ROOT_MOUNT"/etc/fstab" || quit "Failed to generate fstab"
+
+echo "----------------------------------------"
+echo "Changing root to $SETUP_DISK_ROOT_MOUNT"
+arch-chroot $SETUP_DISK_ROOT_MOUNT /bin/bash || quit "Failed to change root to $SETUP_DISK_ROOT_MOUNT"
+
+echo "----------------------------------------"
+if [ -z $SETUP_TIME_ZONE ]; then
+    SETUP_TIME_ZONE="America/Denver"
 fi
+echo "Setting time zone: $SETUP_TIME_ZONE"
+ln -sf /usr/share/zoneinfo/$SETUP_TIME_ZONE /etc/localtime || quit "Failed to set time zone: $SETUP_TIME_ZONE"
+
+echo "----------------------------------------"
+echo "Setting hardware clock..."
+hwclock --systohc || quit "Failed to set hardware clock"
+
+echo "----------------------------------------"
+echo "Generating locales..."
+echo "en_US.UTF-8 UTF-8" >>/etc/locale.gen || quit "Failed to set locales"
+locale-gen || quit "Failed to generate locales"
+echo "LANG=en_US.UTF-8" >/etc/locale.conf || quit "Failed to generate locale configuration file"
+
+echo "----------------------------------------"
+if [ -z $SETUP_HOSTNAME ]; then
+    SETUP_HOSTNAME="arch"
+fi
+echo "Setting hostname: $SETUP_HOSTNAME"
+echo "$SETUP_HOSTNAME" >/etc/hostname || quit "Failed to set hostname: $SETUP_HOSTNAME"
+
+echo "----------------------------------------"
+echo "Enabling automatic network configuration..."
+systemctl enable NetworkManager || quit "Failed to enable networking"
+
+echo "----------------------------------------"
+echo "Setting root password..."
+if [ -z $SETUP_ROOT_PASSWORD ]; then
+    SETUP_ROOT_PASSWORD="arch"
+fi
+usermod --password $(openssl passwd -1 $SETUP_ROOT_PASSWORD) root || quit "Failed to set the root password"
+
+echo "----------------------------------------"
+echo "Configuring boot loader..."
+# cp /usr/share/limine/limine-bios.sys /boot || quit "Limine installation hook failed"
+# limine bios-install $SETUP_DISK
 
 echo "----------------------------------------"
 # quit "Successfully installed Arch Linux" 0

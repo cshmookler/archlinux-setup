@@ -13,6 +13,9 @@ export SETUP_DIR=~                      # Directory to switch to before doing an
 export SETUP_PING=1.1.1.1               # IP address or domain name for testing network connectivity
 export SETUP_DISK=                      # The disk to install arch linux on (unset by default, an unmounted disk is automatically selected)
 export SETUP_DISK_MIN_BYTES=10737418240 # The minimum number of bytes that a disk must have to be automatically selected for installation (default 10 GiB)
+export SETUP_TIME_ZONE=America/Denver   # The system time zone
+export SETUP_HOSTNAME="arch"            # The system hostname
+export SETUP_ROOT_PASSWORD="arch"       # The root password
 ```
 
 **3.** Download this script, make it executable, and run it as root.
@@ -23,10 +26,10 @@ curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/setup.sh 
 
 ## **TODO**
 
-- [X] Partition disks
+- [X] Partition, format, and mount disks.
 - [ ] Install the Linux kernel, core utilities, and a boot loader.
 - [ ] Install additional command-line tools and their dependencies (NeoVim, Git, Clang).
-- [ ] Ensure proper functionality with UEFI boot mode
+- [ ] Ensure proper functionality with UEFI boot mode.
 - [ ] Install a display server (possibly Wayland but most likely Xorg).
 - [ ] Install a window manager (DWM or another lightweight alternative).
 - [ ] Install essential GUI applications (firefox).
