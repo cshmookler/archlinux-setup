@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/bin/zsh
 
 # ---- Run this script as root in the Arch Linux live environment ---- #
 # Arch Linux installation guide: https://wiki.archlinux.org/title/installation_guide
 
 quit() {
-    echo "$1"
+    echo "\e[31;1m$1\e[0m"
     if test -f null; then
         rm null
     fi
@@ -132,19 +132,19 @@ echo "Mounted root partition to $SETUP_DISK_ROOT_MOUNT"
 
 echo "----------------------------------------"
 echo "Installing packages with pacstrap..."
-pacstrap -K $SETUP_DISK_ROOT_MOUNT base base-devel linux linux-firmware networkmanager limine man-db man-pages texinfo vim || quit "Failed to install essential packages"
+pacstrap -K $SETUP_DISK_ROOT_MOUNT base base-devel linux linux-firmware networkmanager limine zsh zsh-completions man-db man-pages texinfo vim || quit "Failed to install essential packages"
 
 echo "----------------------------------------"
 echo "Generating fstab..."
 genfstab -U $SETUP_DISK_ROOT_MOUNT >>$SETUP_DISK_ROOT_MOUNT"/etc/fstab" || quit "Failed to generate fstab"
 
 echo "----------------------------------------"
-
 echo "Changing root to $SETUP_DISK_ROOT_MOUNT"
-arch-chroot $SETUP_DISK_ROOT_MOUNT /bin/bash -c '
+echo "# zsh config" >$SETUP_DISK_ROOT_MOUNT/root/.zshrc.
+arch-chroot $SETUP_DISK_ROOT_MOUNT /bin/zsh -c '
 
 quit() {
-    echo $'"1"'
+    echo "\e[31;1m$'"1"'\e[0m"
     if [ -z $'"2"' ]; then
         exit 1
     fi
@@ -196,8 +196,18 @@ echo "----------------------------------------"
 SETUP_BOOT_LOADER_DIR=/boot/limine
 echo "Moving boot loader to $SETUP_BOOT_LOADER_DIR"
 mkdir $SETUP_BOOT_LOADER_DIR || quit "Failed to create boot loader subdirectory"
-cp /usr/share/limine/limine-bios.sys $SETUP_BOOT_LOADER_DIR || quit "Failed to copy the boot loader to the boot directory"
-limine bios-install '$SETUP_DISK' || quit "Failed to install Limine"
+echo "[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = limine
+
+[Action]
+Description = Deploying Limine after upgrade...
+When = PostTransaction
+Exec = /bin/bash -c \"/usr/bin/limine bios-install '$SETUP_DISK' && /usr/bin/cp /usr/share/limine/limine-bios.sys $SETUP_BOOT_LOADER_DIR\"
+" >/etc/pacman.d/hooks/liminedeploy.hook || quit "Failed to create hook for automatically deploying the boot loader after upgrade"
+pacman -S limine || quit "Failed to deploy the boot loader"
 echo "TIMEOUT=0
 
 :Arch Linux
@@ -217,4 +227,4 @@ echo "Unmounting all file systems on $SETUP_DISK_ROOT_MOUNT"
 umount -R $SETUP_DISK_ROOT_MOUNT || quit "Failed to unmount all file systems on $SETUP_DISK_ROOT_MOUNT"
 
 echo "----------------------------------------"
-quit "Successfully installed Arch Linux" 0
+quit "\e[32;1mSuccessfully installed Arch Linux\e[0m" 0
