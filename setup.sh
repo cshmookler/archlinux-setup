@@ -229,11 +229,11 @@ echo "Unmounting all file systems on $SETUP_DISK_ROOT_MOUNT"
 umount -R $SETUP_DISK_ROOT_MOUNT || quit "Failed to unmount all file systems on $SETUP_DISK_ROOT_MOUNT"
 
 echo "----------------------------------------"
-quit "\e[32;1mSuccessfully installed Arch Linux\e[0m" 0
+echo "\e[32;1mSuccessfully installed Arch Linux\e[0m"
 
 echo "----------------------------------------"
 if [[ -z "$SETUP_RESTART_TIME" ]]; then
-    SETUP_REBOOT_TIME=5
+    SETUP_RESTART_TIME=5
 fi
 if [[ "$SETUP_RESTART_TIME" -ne "-1" ]]; then
     while [[ "$SETUP_RESTART_TIME" -gt "0" ]]; do
