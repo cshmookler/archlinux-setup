@@ -235,7 +235,7 @@ echo "----------------------------------------"
 if [[ -z "$SETUP_RESTART_TIME" ]]; then
     SETUP_REBOOT_TIME=5
 fi
-if [[ "$SETUP_RESTART_TIME" -nq "-1" ]]; then
+if [[ "$SETUP_RESTART_TIME" -ne "-1" ]]; then
     while [[ "$SETUP_RESTART_TIME" -gt "0" ]]; do
         echo "Restarting in $SETUP_RESTART_TIME"
         SETUP_RESTART_TIME=$((SETUP_RESTART_TIME-1))
