@@ -32,6 +32,7 @@ curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/setup.sh 
 - [X] Partition, format, and mount disks.
 - [X] Install the Linux kernel, core utilities, and a boot loader.
 - [ ] Install additional command-line tools and their dependencies (NeoVim, Git, Clang).
+- [X] Fix fsck issue during boot.
 - [ ] Ensure proper functionality with UEFI boot mode.
 - [ ] Install a display server (possibly Wayland but most likely Xorg).
 - [ ] Install a window manager (DWM or another lightweight alternative).

@@ -214,9 +214,9 @@ echo "TIMEOUT=0
 :Arch Linux
     PROTOCOL=linux
     KERNEL_PATH=boot:///boot/vmlinuz-linux
-    CMDLINE=root=UUID=$(findmnt '$SETUP_DISK_ROOT' -no UUID)
+    CMDLINE=root=UUID=$(findmnt '$SETUP_DISK_ROOT' -no UUID) rw
     MODULE_PATH=boot:///boot/initramfs-linux.img
-" >/boot/limine.cfg
+" >/boot/limine/limine.cfg
 
 echo "----------------------------------------"
 echo "Changing root back to installation media..."
