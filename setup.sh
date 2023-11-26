@@ -140,16 +140,6 @@ genfstab -U $SETUP_DISK_ROOT_MOUNT >>$SETUP_DISK_ROOT_MOUNT"/etc/fstab" || quit 
 
 echo "----------------------------------------"
 
-if [ -z $SETUP_TIME_ZONE ]; then
-    SETUP_TIME_ZONE="America/Denver"
-fi
-if [ -z $SETUP_HOSTNAME ]; then
-    SETUP_HOSTNAME="arch"
-fi
-if [ -z $SETUP_ROOT_PASSWORD ]; then
-    SETUP_ROOT_PASSWORD="arch"
-fi
-
 echo "Changing root to $SETUP_DISK_ROOT_MOUNT"
 arch-chroot $SETUP_DISK_ROOT_MOUNT /bin/bash -c '
 
@@ -162,6 +152,11 @@ quit() {
 }
 
 echo "----------------------------------------"
+if [ -z "'$SETUP_TIME_ZONE'" ]; then
+    SETUP_TIME_ZONE="America/Denver"
+else
+    SETUP_TIME_ZONE="'$SETUP_TIME_ZONE'"
+fi
 echo "Setting time zone: $SETUP_TIME_ZONE"
 ln -sf /usr/share/zoneinfo/$SETUP_TIME_ZONE /etc/localtime || quit "Failed to set time zone: $SETUP_TIME_ZONE"
 
@@ -176,6 +171,11 @@ locale-gen || quit "Failed to generate locales"
 echo "LANG=en_US.UTF-8" >/etc/locale.conf || quit "Failed to generate locale configuration file"
 
 echo "----------------------------------------"
+if [ -z "'$SETUP_HOSTNAME'" ]; then
+    SETUP_HOSTNAME="arch"
+else
+    SETUP_HOSTNAME="'$SETUP_HOSTNAME'"
+fi
 echo "Setting hostname: $SETUP_HOSTNAME"
 echo "$SETUP_HOSTNAME" >/etc/hostname || quit "Failed to set hostname: $SETUP_HOSTNAME"
 
@@ -184,26 +184,33 @@ echo "Enabling automatic network configuration..."
 systemctl enable NetworkManager || quit "Failed to enable networking"
 
 echo "----------------------------------------"
+if [ -z "'$SETUP_ROOT_PASSWORD'" ]; then
+    SETUP_ROOT_PASSWORD="arch"
+else
+    SETUP_ROOT_PASSWORD="'$SETUP_ROOT_PASSWORD'"
+fi
 echo "Setting root password..."
 usermod --password $(openssl passwd -1 $SETUP_ROOT_PASSWORD) root || quit "Failed to set the root password"
 
 echo "----------------------------------------"
-echo "Configuring boot loader..."
-cp /usr/share/limine/limine-bios.sys /boot || quit "Failed to copy the boot loader to the boot directory"
-limine bios-install $SETUP_DISK || quit "Failed to install Limine"
-echo "TIMEOUT=5
+SETUP_BOOT_LOADER_DIR=/boot/limine
+echo "Moving boot loader to $SETUP_BOOT_LOADER_DIR"
+mkdir $SETUP_BOOT_LOADER_DIR || quit "Failed to create boot loader subdirectory"
+cp /usr/share/limine/limine-bios.sys $SETUP_BOOT_LOADER_DIR || quit "Failed to copy the boot loader to the boot directory"
+limine bios-install '$SETUP_DISK' || quit "Failed to install Limine"
+echo "TIMEOUT=0
 
 :Arch Linux
     PROTOCOL=linux
     KERNEL_PATH=boot:///boot/vmlinuz-linux
-    CMDLINE=root=UUID=$(findmnt $SETUP_DISK_ROOT -no UUID)
+    CMDLINE=root=UUID=$(findmnt '$SETUP_DISK_ROOT' -no UUID)
     MODULE_PATH=boot:///boot/initramfs-linux.img
 " >/boot/limine.cfg
 
 echo "----------------------------------------"
 quit "Changing root back to installation media..." 0
 
-' || quit "Failed operation while root changed to $SETUP_DISK_ROOT_MOUNT"
+' || quit "Failed operation while root was changed to $SETUP_DISK_ROOT_MOUNT"
 
 echo "----------------------------------------"
 echo "Unmounting all file systems on $SETUP_DISK_ROOT_MOUNT"
