@@ -16,7 +16,10 @@ export SETUP_DISK_MIN_BYTES=10737418240 # The minimum number of bytes that a dis
 export SETUP_TIME_ZONE=America/Denver   # The system time zone
 export SETUP_HOSTNAME="arch"            # The system hostname
 export SETUP_ROOT_PASSWORD="arch"       # The root password
+export SETUP_RESTART_TIME=5             # The timed delay before restarting once installation is complete (set to -1 to exit instead)
 ```
+
+> **Warning**: If the SETUP_DISK option is unset, the largest available disk is partitioned and formatted. This may result in data being overwritten. Run this script at your own risk!
 
 **3.** Download this script, make it executable, and run it as root.
 

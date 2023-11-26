@@ -208,7 +208,7 @@ Description = Deploying Limine after upgrade...
 When = PostTransaction
 Exec = /bin/bash -c \"/usr/bin/limine bios-install '$SETUP_DISK' && /usr/bin/cp /usr/share/limine/limine-bios.sys $SETUP_BOOT_LOADER_DIR\"
 " >/etc/pacman.d/hooks/liminedeploy.hook || quit "Failed to create hook for automatically deploying the boot loader after upgrade"
-pacman -S limine || quit "Failed to deploy the boot loader"
+pacman -S --noconfirm limine || quit "Failed to deploy the boot loader"
 echo "TIMEOUT=0
 
 :Arch Linux
@@ -219,7 +219,8 @@ echo "TIMEOUT=0
 " >/boot/limine.cfg
 
 echo "----------------------------------------"
-quit "Changing root back to installation media..." 0
+echo "Changing root back to installation media..."
+exit 0
 
 ' || quit "Failed operation while root was changed to $SETUP_DISK_ROOT_MOUNT"
 
@@ -229,3 +230,20 @@ umount -R $SETUP_DISK_ROOT_MOUNT || quit "Failed to unmount all file systems on 
 
 echo "----------------------------------------"
 quit "\e[32;1mSuccessfully installed Arch Linux\e[0m" 0
+
+echo "----------------------------------------"
+if [[ -z "$SETUP_RESTART_TIME" ]]; then
+    SETUP_REBOOT_TIME=5
+fi
+if [[ "$SETUP_RESTART_TIME" -nq "-1" ]]; then
+    while [[ "$SETUP_RESTART_TIME" -gt "0" ]]; do
+        echo "Restarting in $SETUP_RESTART_TIME"
+        SETUP_RESTART_TIME=$((SETUP_RESTART_TIME-1))
+        read -t 1
+    done
+    shutdown -r now || quit "Failed to restart"
+else
+    echo "Restart cancelled"
+fi
+
+exit 0
