@@ -16,7 +16,7 @@ quit() {
 
 echo "----------------------------------------"
 echo "Changing directory before doing anything else..."
-if [ -z $SETUP_DIR ]; then
+if [[ -z "$SETUP_DIR" ]]; then
     SETUP_DIR=~
 fi
 cd $SETUP_DIR || quit "Failed to change directory to home"
@@ -24,7 +24,7 @@ echo "Changed directory to $SETUP_DIR"
 
 echo "----------------------------------------"
 echo "Checking internet connectivity..."
-if [ -z $SETUP_PING ]; then
+if [[ -z "$SETUP_PING" ]]; then
     SETUP_PING=1.1.1.1
 fi
 if ! ping -c 1 $SETUP_PING; then
@@ -39,9 +39,9 @@ setfont ter-132b || quit "Failed to set console font"
 
 echo "----------------------------------------"
 echo "Selecting a suitable disk for installation..."
-if [ -z $SETUP_DISK ]; then
+if [[ -z "$SETUP_DISK" ]]; then
     SETUP_LSBLK=$(lsblk -bp | grep --color=never " disk ")
-    if [ -z $SETUP_DISK_MIN_BYTES ]; then
+    if [[ -z "$SETUP_DISK_MIN_BYTES" ]]; then
         SETUP_DISK_MIN_BYTES=10737418240
     fi
     SETUP_DISK_SIZE=$SETUP_DISK_MIN_BYTES
@@ -51,17 +51,17 @@ if [ -z $SETUP_DISK ]; then
             SETUP_DISK_CANDIDATE_INDEX=$(($SETUP_DISK_CANDIDATE_INDEX + 1))
             eval SETUP_DISK_CANDIDATE_FIELD_$SETUP_DISK_CANDIDATE_INDEX=$SETUP_DISK_CANDIDATE_FIELD
         done
-        if ! [ $SETUP_DISK_CANDIDATE_INDEX -lt 7 ]; then
+        if ! [[ $SETUP_DISK_CANDIDATE_INDEX -lt 7 ]]; then
             echo "Ignoring mounted disk: $SETUP_DISK_CANDIDATE_FIELD_1"
             continue
         fi
-        if [ $SETUP_DISK_CANDIDATE_FIELD_4 -gt $SETUP_DISK_SIZE ]; then
+        if [[ $SETUP_DISK_CANDIDATE_FIELD_4 -gt $SETUP_DISK_SIZE ]]; then
             # Select the largest disk that meets the minimum size requirement
             SETUP_DISK_SIZE=$SETUP_DISK_CANDIDATE_FIELD_4
             SETUP_DISK=$SETUP_DISK_CANDIDATE_FIELD_1
         fi
     done <<<"$SETUP_LSBLK"
-    if [ -z $SETUP_DISK ]; then
+    if [[ -z "$SETUP_DISK" ]]; then
         quit "Failed to find a disk that is larger than the minimum size requirement ($SETUP_DISK_MIN_BYTES bytes)"
     fi
 fi
@@ -99,7 +99,7 @@ echo "Mounted root partition to $SETUP_DISK_ROOT_MOUNT"
 #     quit "Unable to identify available boot modes. Refer to the Arch Linux installation guide for help."
 # fi
 
-# if [ "$SETUP_BOOT_MODE" = "UEFI-32" ] || [ "$SETUP_BOOT_MODE" = "UEFI-64" ]; then
+# if [[ "$SETUP_BOOT_MODE" = "UEFI-32" ]] || [[ "$SETUP_BOOT_MODE" = "UEFI-64" ]]; then
 #     (
 #         echo g     # new GPT partition table
 #         echo n     # new EFI partition
@@ -152,7 +152,7 @@ quit() {
 }
 
 echo "----------------------------------------"
-if [ -z "'$SETUP_TIME_ZONE'" ]; then
+if [[ -z "'$SETUP_TIME_ZONE'" ]]; then
     SETUP_TIME_ZONE="America/Denver"
 else
     SETUP_TIME_ZONE="'$SETUP_TIME_ZONE'"
@@ -171,7 +171,7 @@ locale-gen || quit "Failed to generate locales"
 echo "LANG=en_US.UTF-8" >/etc/locale.conf || quit "Failed to generate locale configuration file"
 
 echo "----------------------------------------"
-if [ -z "'$SETUP_HOSTNAME'" ]; then
+if [[ -z "'$SETUP_HOSTNAME'" ]]; then
     SETUP_HOSTNAME="arch"
 else
     SETUP_HOSTNAME="'$SETUP_HOSTNAME'"
@@ -184,7 +184,7 @@ echo "Enabling automatic network configuration..."
 systemctl enable NetworkManager || quit "Failed to enable networking"
 
 echo "----------------------------------------"
-if [ -z "'$SETUP_ROOT_PASSWORD'" ]; then
+if [[ -z "'$SETUP_ROOT_PASSWORD'" ]]; then
     SETUP_ROOT_PASSWORD="arch"
 else
     SETUP_ROOT_PASSWORD="'$SETUP_ROOT_PASSWORD'"
