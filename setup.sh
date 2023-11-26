@@ -132,20 +132,36 @@ echo "Mounted root partition to $SETUP_DISK_ROOT_MOUNT"
 
 echo "----------------------------------------"
 echo "Installing packages with pacstrap..."
-pacstrap -Kc $SETUP_DISK_ROOT_MOUNT base base-devel linux linux-firmware networkmanager limine man-db man-pages texinfo vim || quit "Failed to install essential packages"
+pacstrap -K $SETUP_DISK_ROOT_MOUNT base base-devel linux linux-firmware networkmanager limine man-db man-pages texinfo vim || quit "Failed to install essential packages"
 
 echo "----------------------------------------"
 echo "Generating fstab..."
 genfstab -U $SETUP_DISK_ROOT_MOUNT >>$SETUP_DISK_ROOT_MOUNT"/etc/fstab" || quit "Failed to generate fstab"
 
 echo "----------------------------------------"
-echo "Changing root to $SETUP_DISK_ROOT_MOUNT"
-arch-chroot $SETUP_DISK_ROOT_MOUNT /bin/bash || quit "Failed to change root to $SETUP_DISK_ROOT_MOUNT"
 
-echo "----------------------------------------"
 if [ -z $SETUP_TIME_ZONE ]; then
     SETUP_TIME_ZONE="America/Denver"
 fi
+if [ -z $SETUP_HOSTNAME ]; then
+    SETUP_HOSTNAME="arch"
+fi
+if [ -z $SETUP_ROOT_PASSWORD ]; then
+    SETUP_ROOT_PASSWORD="arch"
+fi
+
+echo "Changing root to $SETUP_DISK_ROOT_MOUNT"
+arch-chroot $SETUP_DISK_ROOT_MOUNT /bin/bash -c '
+
+quit() {
+    echo $'"1"'
+    if [ -z $'"2"' ]; then
+        exit 1
+    fi
+    exit $'"2"'
+}
+
+echo "----------------------------------------"
 echo "Setting time zone: $SETUP_TIME_ZONE"
 ln -sf /usr/share/zoneinfo/$SETUP_TIME_ZONE /etc/localtime || quit "Failed to set time zone: $SETUP_TIME_ZONE"
 
@@ -160,9 +176,6 @@ locale-gen || quit "Failed to generate locales"
 echo "LANG=en_US.UTF-8" >/etc/locale.conf || quit "Failed to generate locale configuration file"
 
 echo "----------------------------------------"
-if [ -z $SETUP_HOSTNAME ]; then
-    SETUP_HOSTNAME="arch"
-fi
 echo "Setting hostname: $SETUP_HOSTNAME"
 echo "$SETUP_HOSTNAME" >/etc/hostname || quit "Failed to set hostname: $SETUP_HOSTNAME"
 
@@ -172,16 +185,29 @@ systemctl enable NetworkManager || quit "Failed to enable networking"
 
 echo "----------------------------------------"
 echo "Setting root password..."
-if [ -z $SETUP_ROOT_PASSWORD ]; then
-    SETUP_ROOT_PASSWORD="arch"
-fi
 usermod --password $(openssl passwd -1 $SETUP_ROOT_PASSWORD) root || quit "Failed to set the root password"
 
 echo "----------------------------------------"
 echo "Configuring boot loader..."
-# cp /usr/share/limine/limine-bios.sys /boot || quit "Limine installation hook failed"
-# limine bios-install $SETUP_DISK
+cp /usr/share/limine/limine-bios.sys /boot || quit "Failed to copy the boot loader to the boot directory"
+limine bios-install $SETUP_DISK || quit "Failed to install Limine"
+echo "TIMEOUT=5
+
+:Arch Linux
+    PROTOCOL=linux
+    KERNEL_PATH=boot:///boot/vmlinuz-linux
+    CMDLINE=root=UUID=$(findmnt $SETUP_DISK_ROOT -no UUID)
+    MODULE_PATH=boot:///boot/initramfs-linux.img
+" >/boot/limine.cfg
 
 echo "----------------------------------------"
-# quit "Successfully installed Arch Linux" 0
-quit "end of script" 0
+quit "Changing root back to installation media..." 0
+
+' || quit "Failed operation while root changed to $SETUP_DISK_ROOT_MOUNT"
+
+echo "----------------------------------------"
+echo "Unmounting all file systems on $SETUP_DISK_ROOT_MOUNT"
+umount -R $SETUP_DISK_ROOT_MOUNT || quit "Failed to unmount all file systems on $SETUP_DISK_ROOT_MOUNT"
+
+echo "----------------------------------------"
+quit "Successfully installed Arch Linux" 0
