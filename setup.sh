@@ -47,7 +47,7 @@ if [[ -z "$SETUP_DISK" ]]; then
     SETUP_DISK_SIZE=$SETUP_DISK_MIN_BYTES
     while read -r SETUP_DISK_CANDIDATE; do
         SETUP_DISK_CANDIDATE_INDEX=0
-        for SETUP_DISK_CANDIDATE_FIELD in $SETUP_DISK_CANDIDATE; do
+        for SETUP_DISK_CANDIDATE_FIELD in ${(s: :)SETUP_DISK_CANDIDATE}; do
             SETUP_DISK_CANDIDATE_INDEX=$(($SETUP_DISK_CANDIDATE_INDEX + 1))
             eval SETUP_DISK_CANDIDATE_FIELD_$SETUP_DISK_CANDIDATE_INDEX=$SETUP_DISK_CANDIDATE_FIELD
         done
@@ -196,6 +196,7 @@ echo "----------------------------------------"
 SETUP_BOOT_LOADER_DIR=/boot/limine
 echo "Moving boot loader to $SETUP_BOOT_LOADER_DIR"
 mkdir $SETUP_BOOT_LOADER_DIR || quit "Failed to create boot loader subdirectory"
+mkdir /etc/pacman.d/hooks || quit "Failed to create the pacman hooks subdirectory"
 echo "[Trigger]
 Operation = Install
 Operation = Upgrade
