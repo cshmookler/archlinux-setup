@@ -69,26 +69,26 @@ echo "Selected disk: $SETUP_DISK"
 
 echo "----------------------------------------"
 echo "Partitioning, formatting, and mounting $SETUP_DISK"
-# if ! cat /sys/firmware/efi/fw_platform_size >>null 2>>null; then
-# echo "This system is BIOS bootable only"
-SETUP_BOOT_MODE=BIOS
-(
-    echo o # new MBR partition table
-    echo n # new root partition
-    echo p # primary partition
-    echo 1 # root partiion number
-    echo   # start at the first sector
-    echo   # reserve the entire disk
-    echo a # set the bootable flag
-    echo w # write changes
-) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
-SETUP_DISK_ROOT=$SETUP_DISK"1"
-echo "Created root partition: $SETUP_DISK_ROOT"
-mkfs.ext4 $SETUP_DISK_ROOT || quit "Failed to format the root partition: $SETUP_DISK_ROOT"
-echo "Formatted root partition with EXT4"
-SETUP_DISK_ROOT_MOUNT=/mnt
-mount --mkdir $SETUP_DISK_ROOT $SETUP_DISK_ROOT_MOUNT || quit "Failed to mount $SETUP_DISK_ROOT -> $SETUP_DISK_ROOT_MOUNT"
-echo "Mounted root partition to $SETUP_DISK_ROOT_MOUNT"
+if ! cat /sys/firmware/efi/fw_platform_size >>null 2>>null; then
+    echo "This system is BIOS bootable only"
+    SETUP_BOOT_MODE=BIOS
+    (
+        echo o # new MBR partition table
+        echo n # new root partition
+        echo p # primary partition
+        echo 1 # root partiion number
+        echo   # start at the first sector
+        echo   # reserve the entire disk
+        echo a # set the bootable flag
+        echo w # write changes
+    ) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
+    SETUP_DISK_ROOT=$SETUP_DISK"1"
+    echo "Created root partition: $SETUP_DISK_ROOT"
+    mkfs.ext4 $SETUP_DISK_ROOT || quit "Failed to format the root partition: $SETUP_DISK_ROOT"
+    echo "Formatted root partition with EXT4"
+    SETUP_DISK_ROOT_MOUNT=/mnt
+    mount --mkdir $SETUP_DISK_ROOT $SETUP_DISK_ROOT_MOUNT || quit "Failed to mount $SETUP_DISK_ROOT -> $SETUP_DISK_ROOT_MOUNT"
+    echo "Mounted root partition to $SETUP_DISK_ROOT_MOUNT"
 elif cat /sys/firmware/efi/fw_platform_size | grep -q 32; then
     echo "This system is 32-bit UEFI bootable"
     SETUP_BOOT_MODE=UEFI-32
