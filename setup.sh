@@ -89,46 +89,46 @@ echo "Formatted root partition with EXT4"
 SETUP_DISK_ROOT_MOUNT=/mnt
 mount --mkdir $SETUP_DISK_ROOT $SETUP_DISK_ROOT_MOUNT || quit "Failed to mount $SETUP_DISK_ROOT -> $SETUP_DISK_ROOT_MOUNT"
 echo "Mounted root partition to $SETUP_DISK_ROOT_MOUNT"
-# elif cat /sys/firmware/efi/fw_platform_size | grep -q 32; then
-#     echo "This system is 32-bit UEFI bootable"
-#     SETUP_BOOT_MODE=UEFI-32
-# elif cat /sys/firmware/efi/fw_platform_size | grep -q 64; then
-#     echo "This system is 64-bit UEFI bootable"
-#     SETUP_BOOT_MODE=UEFI-64
-# else
-#     quit "Unable to identify available boot modes. Refer to the Arch Linux installation guide for help."
-# fi
+elif cat /sys/firmware/efi/fw_platform_size | grep -q 32; then
+    echo "This system is 32-bit UEFI bootable"
+    SETUP_BOOT_MODE=UEFI-32
+elif cat /sys/firmware/efi/fw_platform_size | grep -q 64; then
+    echo "This system is 64-bit UEFI bootable"
+    SETUP_BOOT_MODE=UEFI-64
+else
+    quit "Unable to identify available boot modes. Refer to the Arch Linux installation guide for help."
+fi
 
-# if [[ "$SETUP_BOOT_MODE" = "UEFI-32" ]] || [[ "$SETUP_BOOT_MODE" = "UEFI-64" ]]; then
-#     (
-#         echo g     # new GPT partition table
-#         echo n     # new EFI partition
-#         echo 1     # EFI partiion number
-#         echo       # start at the first sector
-#         echo +512M # reserve 512 MiB
-#         echo t     # change EFI partition type
-#         echo 1     # change partition type to EFI System
-#         echo n     # new root partition
-#         echo 2     # root partition number
-#         echo       # start at the end of the EFI partition
-#         echo       # reserve the rest of the disk
-#         echo w     # write changes
-#     ) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
-#     SETUP_DISK_EFI=$SETUP_DISK"1"
-#     SETUP_DISK_ROOT=$SETUP_DISK"2"
-#     echo "Created EFI partition: $SETUP_DISK_EFI"
-#     echo "Created root partition: $SETUP_DISK_ROOT"
-#     mkfs.fat -F 32 $SETUP_DISK_EFI || quit "Failed to format the EFI partition: $SETUP_DISK_EFI"
-#     mkfs.ext4 $SETUP_DISK_ROOT || quit "Failed to format the root partition: $SETUP_DISK_ROOT"
-#     echo "Formatted EFI partition with FAT32"
-#     echo "Formatted root partition with EXT4"
-#     SETUP_DISK_EFI_MOUNT=/mnt/boot
-#     SETUP_DISK_ROOT_MOUNT=/mnt
-#     mount --mkdir $SETUP_DISK_EFI $SETUP_DISK_EFI_MOUNT || quit "Failed to mount $SETUP_DISK_EFI -> $SETUP_DISK_EFI_MOUNT"
-#     mount --mkdir $SETUP_DISK_ROOT $SETUP_DISK_ROOT_MOUNT || quit "Failed to mount $SETUP_DISK_ROOT -> $SETUP_DISK_ROOT_MOUNT"
-#     echo "Mounted EFI partition to $SETUP_DISK_EFI_MOUNT"
-#     echo "Mounted root partition to $SETUP_DISK_ROOT_MOUNT"
-# fi
+if [[ "$SETUP_BOOT_MODE" = "UEFI-32" ]] || [[ "$SETUP_BOOT_MODE" = "UEFI-64" ]]; then
+    (
+        echo g     # new GPT partition table
+        echo n     # new EFI partition
+        echo 1     # EFI partiion number
+        echo       # start at the first sector
+        echo +512M # reserve enough space for the EFI partition
+        echo t     # change EFI partition type
+        echo 1     # change partition type to EFI System
+        echo n     # new root partition
+        echo 2     # root partition number
+        echo       # start at the end of the EFI partition
+        echo       # reserve the rest of the disk
+        echo w     # write changes
+    ) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
+    SETUP_DISK_EFI=$SETUP_DISK"1"
+    SETUP_DISK_ROOT=$SETUP_DISK"2"
+    echo "Created EFI partition: $SETUP_DISK_EFI"
+    echo "Created root partition: $SETUP_DISK_ROOT"
+    mkfs.fat -F 32 $SETUP_DISK_EFI || quit "Failed to format the EFI partition: $SETUP_DISK_EFI"
+    mkfs.ext4 $SETUP_DISK_ROOT || quit "Failed to format the root partition: $SETUP_DISK_ROOT"
+    echo "Formatted EFI partition with FAT32"
+    echo "Formatted root partition with EXT4"
+    SETUP_DISK_EFI_MOUNT=/mnt/boot
+    SETUP_DISK_ROOT_MOUNT=/mnt
+    mount --mkdir $SETUP_DISK_EFI $SETUP_DISK_EFI_MOUNT || quit "Failed to mount $SETUP_DISK_EFI -> $SETUP_DISK_EFI_MOUNT"
+    mount --mkdir $SETUP_DISK_ROOT $SETUP_DISK_ROOT_MOUNT || quit "Failed to mount $SETUP_DISK_ROOT -> $SETUP_DISK_ROOT_MOUNT"
+    echo "Mounted EFI partition to $SETUP_DISK_EFI_MOUNT"
+    echo "Mounted root partition to $SETUP_DISK_ROOT_MOUNT"
+fi
 
 echo "----------------------------------------"
 echo "Installing packages with pacstrap..."
@@ -197,7 +197,22 @@ SETUP_BOOT_LOADER_DIR=/boot/limine
 echo "Moving boot loader to $SETUP_BOOT_LOADER_DIR"
 mkdir $SETUP_BOOT_LOADER_DIR || quit "Failed to create boot loader subdirectory"
 mkdir /etc/pacman.d/hooks || quit "Failed to create the pacman hooks subdirectory"
-echo "[Trigger]
+if [[ "'$SETUP_BOOT_MODE'" = "UEFI-32" ]] || [[ "'$SETUP_BOOT_MODE'" = "UEFI-64" ]]; then
+    mkdir /boot/EFI || quit "Failed to create EFI subdirectory"
+    mkdir /boot/EFI/BOOT || quit "Failed to create EFI boot subdirectory"
+    echo "[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = limine              
+
+[Action]
+Description = Deploying Limine after upgrade...
+When = PostTransaction
+Exec = /usr/bin/cp /usr/share/limine/BOOTX64.EFI /boot/EFI/BOOT/
+    " >/etc/pacman.d/hooks/liminedeploy.hook || quit "Failed to create hook for automatically deplouing the boot loader after upgrade"
+else
+    echo "[Trigger]
 Operation = Install
 Operation = Upgrade
 Type = Package
@@ -207,7 +222,8 @@ Target = limine
 Description = Deploying Limine after upgrade...
 When = PostTransaction
 Exec = /bin/bash -c \"/usr/bin/limine bios-install '$SETUP_DISK' && /usr/bin/cp /usr/share/limine/limine-bios.sys $SETUP_BOOT_LOADER_DIR\"
-" >/etc/pacman.d/hooks/liminedeploy.hook || quit "Failed to create hook for automatically deploying the boot loader after upgrade"
+    " >/etc/pacman.d/hooks/liminedeploy.hook || quit "Failed to create hook for automatically deploying the boot loader after upgrade"
+fi
 pacman -S --noconfirm limine || quit "Failed to deploy the boot loader"
 echo "TIMEOUT=0
 
