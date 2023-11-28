@@ -140,7 +140,7 @@ if [[ -z "$SETUP_HEADLESS" ]]; then
     SETUP_HEADLESS=false
 fi
 if [[ "$SETUP_HEADLESS" = "false" ]]; then
-    SETUP_EXTRA_PACKAGES=dwm\ libreoffice\ firefox\ $SETUP_EXTRA_PACKAGES
+    # SETUP_EXTRA_PACKAGES=dwm\ libreoffice\ firefox\ $SETUP_EXTRA_PACKAGES
 fi
 if [[ -z "$SETUP_DEVELOPMENT_TOOLS" ]]; then
     SETUP_DEVELOPMENT_TOOLS=true
