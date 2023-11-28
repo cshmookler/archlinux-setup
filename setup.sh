@@ -8,7 +8,7 @@ quit() {
     if test -f null; then
         rm null
     fi
-    if [ -z $2 ]; then
+    if [[ -z $2 ]]; then
         exit 1
     fi
     exit $2
@@ -105,7 +105,7 @@ if [[ "$SETUP_BOOT_MODE" = "UEFI-32" ]] || [[ "$SETUP_BOOT_MODE" = "UEFI-64" ]];
         echo n     # new EFI partition
         echo 1     # EFI partiion number
         echo       # start at the first sector
-        echo +512M # reserve enough space for the EFI partition
+        echo +512M # reserve space for the EFI partition
         echo t     # change EFI partition type
         echo 1     # change partition type to EFI System
         echo n     # new root partition
@@ -132,7 +132,23 @@ fi
 
 echo "----------------------------------------"
 echo "Installing packages with pacstrap..."
-pacstrap -K $SETUP_DISK_ROOT_MOUNT base base-devel linux linux-firmware networkmanager limine zsh zsh-completions man-db man-pages texinfo vim || quit "Failed to install essential packages"
+SETUP_BASE_PACKAGES = "base base-devel linux linux-firmware networkmanager limine zsh zsh-completions man-db man-pages texinfo vim"
+if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
+    SETUP_EXTRA_PACKAGES=""
+fi
+if [[ -z "$SETUP_HEADLESS" ]]; then
+    SETUP_HEADLESS=false
+fi
+if [[ "$SETUP_HEADLESS" = "false" ]]; then
+    SETUP_EXTRA_PACKAGES="dwm libreoffice firefox "$SETUP_EXTRA_PACKAGES
+fi
+if [[ -z "$SETUP_DEVELOPMENT_TOOLS" ]]; then
+    SETUP_DEVELOPMENT_TOOLS=true
+fi
+if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
+    SETUP_EXTRA_PACKAGES="git clang "$SETUP_EXTRA_PACKAGES
+fi
+pacstrap -K $SETUP_DISK_ROOT_MOUNT $SETUP_BASE_PACKAGES $SETUP_EXTRA_PACKAGES || quit "Failed to install essential packages"
 
 echo "----------------------------------------"
 echo "Generating fstab..."
@@ -145,7 +161,7 @@ arch-chroot $SETUP_DISK_ROOT_MOUNT /bin/zsh -c '
 
 quit() {
     echo "\e[31;1m$'"1"'\e[0m"
-    if [ -z $'"2"' ]; then
+    if [[ -z $'"2"' ]]; then
         exit 1
     fi
     exit $'"2"'
