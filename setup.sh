@@ -132,7 +132,7 @@ fi
 
 echo "----------------------------------------"
 echo "Installing packages with pacstrap..."
-SETUP_BASE_PACKAGES = "base base-devel linux linux-firmware networkmanager limine zsh zsh-completions man-db man-pages texinfo vim"
+SETUP_BASE_PACKAGES = base\ base-devel\ linux\ linux-firmware\ networkmanager\ limine\ zsh\ zsh-completions\ man-db\ man-pages\ texinfo\ vim
 if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
     SETUP_EXTRA_PACKAGES=""
 fi
@@ -140,15 +140,15 @@ if [[ -z "$SETUP_HEADLESS" ]]; then
     SETUP_HEADLESS=false
 fi
 if [[ "$SETUP_HEADLESS" = "false" ]]; then
-    SETUP_EXTRA_PACKAGES="dwm libreoffice firefox "$SETUP_EXTRA_PACKAGES
+    SETUP_EXTRA_PACKAGES=dwm\ libreoffice\ firefox\ $SETUP_EXTRA_PACKAGES
 fi
 if [[ -z "$SETUP_DEVELOPMENT_TOOLS" ]]; then
     SETUP_DEVELOPMENT_TOOLS=true
 fi
 if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
-    SETUP_EXTRA_PACKAGES="git clang "$SETUP_EXTRA_PACKAGES
+    SETUP_EXTRA_PACKAGES=git\ clang\ $SETUP_EXTRA_PACKAGES
 fi
-pacstrap -K $SETUP_DISK_ROOT_MOUNT $SETUP_BASE_PACKAGES $SETUP_EXTRA_PACKAGES || quit "Failed to install essential packages"
+eval pacstrap -K $SETUP_DISK_ROOT_MOUNT $SETUP_BASE_PACKAGES $SETUP_EXTRA_PACKAGES || quit "Failed to install essential packages"
 
 echo "----------------------------------------"
 echo "Generating fstab..."
