@@ -14,6 +14,16 @@ quit() {
     exit $2
 }
 
+timer() {
+    TIME=$1
+    MSG=$2
+    while [[ "$TIME" -gt "0" ]]; do
+        echo "$2 in $TIME"
+        TIME=$((TIME-1))
+        read -t 1
+    done
+}
+
 echo "----------------------------------------"
 echo "Changing directory before doing anything else..."
 if [[ -z "$SETUP_DIR" ]]; then
@@ -148,6 +158,8 @@ fi
 if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
     SETUP_EXTRA_PACKAGES="git clang $SETUP_EXTRA_PACKAGES"
 fi
+echo "Packages: $SETUP_DISK_ROOT_MOUNT $SETUP_BASE_PACKAGES $SETUP_EXTRA_PACKAGES"
+timer(10, "Installing packages")
 eval "pacstrap -K $SETUP_DISK_ROOT_MOUNT $SETUP_BASE_PACKAGES $SETUP_EXTRA_PACKAGES" || quit "Failed to install essential packages"
 
 echo "----------------------------------------"
@@ -268,11 +280,7 @@ if [[ -z "$SETUP_RESTART_TIME" ]]; then
     SETUP_RESTART_TIME=5
 fi
 if [[ "$SETUP_RESTART_TIME" -ne "-1" ]]; then
-    while [[ "$SETUP_RESTART_TIME" -gt "0" ]]; do
-        echo "Restarting in $SETUP_RESTART_TIME"
-        SETUP_RESTART_TIME=$((SETUP_RESTART_TIME-1))
-        read -t 1
-    done
+    timer($SETUP_RESTART_TIME, "Restarting")
     shutdown -r now || quit "Failed to restart"
 else
     echo "Restart cancelled"
