@@ -159,7 +159,7 @@ if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
     SETUP_EXTRA_PACKAGES="git clang $SETUP_EXTRA_PACKAGES"
 fi
 echo "Packages: $SETUP_DISK_ROOT_MOUNT $SETUP_BASE_PACKAGES $SETUP_EXTRA_PACKAGES"
-timer(10, "Installing packages")
+timer 10 "Installing packages"
 eval "pacstrap -K $SETUP_DISK_ROOT_MOUNT $SETUP_BASE_PACKAGES $SETUP_EXTRA_PACKAGES" || quit "Failed to install essential packages"
 
 echo "----------------------------------------"
@@ -280,7 +280,7 @@ if [[ -z "$SETUP_RESTART_TIME" ]]; then
     SETUP_RESTART_TIME=5
 fi
 if [[ "$SETUP_RESTART_TIME" -ne "-1" ]]; then
-    timer($SETUP_RESTART_TIME, "Restarting")
+    timer $SETUP_RESTART_TIME "Restarting"
     shutdown -r now || quit "Failed to restart"
 else
     echo "Restart cancelled"
