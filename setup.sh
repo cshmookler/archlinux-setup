@@ -142,7 +142,7 @@ fi
 
 echo "----------------------------------------"
 echo "Installing packages with pacstrap..."
-SETUP_BASE_PACKAGES = "base base-devel linux linux-firmware networkmanager limine zsh zsh-completions man-db man-pages texinfo vim"
+SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine zsh zsh-completions man-db man-pages texinfo vim"
 if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
     SETUP_EXTRA_PACKAGES=""
 fi
