@@ -194,12 +194,13 @@ genfstab -U $SETUP_DISK_ROOT_MOUNT >>$SETUP_DISK_ROOT_MOUNT"/etc/fstab" || quit 
 
 echo "----------------------------------------"
 echo "Adding custom startup scripts..."
-SETUP_VIM_KEYBOARD_LAYOUT="$SETUP_DISK_ROOT_MOUNT/etc/vim_keyboard_layout/us-vim.kmap"
+SETUP_VIM_KEYBOARD_LAYOUT_RELATIVE="/etc/vim_keyboard_layout/us-vim.kmap"
+SETUP_VIM_KEYBOARD_LAYOUT="$SETUP_DISK_ROOT_MOUNT$SETUP_VIM_KEYBOARD_LAYOUT_RELATIVE"
 SETUP_VIM_KEYBOARD_LAYOUT_DIR="$(dirname $SETUP_VIM_KEYBOARD_LAYOUT)"
 mkdir -p $SETUP_VIM_KEYBOARD_LAYOUT_DIR || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR"
 mv ~/us-vim.kmap $SETUP_VIM_KEYBOARD_LAYOUT_DIR || quit "Failed to move ~/us-vim.kmap -> $SETUP_VIM_KEYBOARD_LAYOUT_DIR"
 mkdir -p $SETUP_DISK_ROOT_MOUNT"/etc/profile.d/" || quit "Failed to create $SETUP_DISK_ROOT_MOUNT'/etc/profile.d/'"
-echo "loadkeys $SETUP_VIM_KEYBOARD_LAYOUT" >/etc/profile.d/vim_keyboard_layout.sh || quit "Failed to create /etc/profile.d/vim_keyboard_layout.sh"
+echo "loadkeys $SETUP_VIM_KEYBOARD_LAYOUT_RELATIVE" >/etc/profile.d/vim_keyboard_layout.sh || quit "Failed to create /etc/profile.d/vim_keyboard_layout.sh"
 
 echo "----------------------------------------"
 echo "Changing root to $SETUP_DISK_ROOT_MOUNT"
