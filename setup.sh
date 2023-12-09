@@ -132,11 +132,11 @@ if [[ "$SETUP_BOOT_MODE" = "UEFI-32" ]] || [[ "$SETUP_BOOT_MODE" = "UEFI-64" ]];
     mkfs.ext4 $SETUP_DISK_ROOT || quit "Failed to format the root partition: $SETUP_DISK_ROOT"
     echo "Formatted EFI partition with FAT32"
     echo "Formatted root partition with EXT4"
-    SETUP_DISK_EFI_MOUNT=/mnt/boot
+    # SETUP_DISK_EFI_MOUNT=/mnt/boot
     SETUP_DISK_ROOT_MOUNT=/mnt
-    mount --mkdir $SETUP_DISK_EFI $SETUP_DISK_EFI_MOUNT || quit "Failed to mount $SETUP_DISK_EFI -> $SETUP_DISK_EFI_MOUNT"
+    # mount --mkdir $SETUP_DISK_EFI $SETUP_DISK_EFI_MOUNT || quit "Failed to mount $SETUP_DISK_EFI -> $SETUP_DISK_EFI_MOUNT"
     mount --mkdir $SETUP_DISK_ROOT $SETUP_DISK_ROOT_MOUNT || quit "Failed to mount $SETUP_DISK_ROOT -> $SETUP_DISK_ROOT_MOUNT"
-    echo "Mounted EFI partition to $SETUP_DISK_EFI_MOUNT"
+    # echo "Mounted EFI partition to $SETUP_DISK_EFI_MOUNT"
     echo "Mounted root partition to $SETUP_DISK_ROOT_MOUNT"
 fi
 
@@ -150,7 +150,7 @@ if [[ -z "$SETUP_HEADLESS" ]]; then
     SETUP_HEADLESS=false
 fi
 if [[ "$SETUP_HEADLESS" = "false" ]]; then
-    SETUP_EXTRA_PACKAGES="xorg xfce4 xfce4-goodies $SETUP_EXTRA_PACKAGES"
+    SETUP_EXTRA_PACKAGES="$SETUP_EXTRA_PACKAGES"
 fi
 if [[ -z "$SETUP_DEVELOPMENT_TOOLS" ]]; then
     SETUP_DEVELOPMENT_TOOLS=true
@@ -158,8 +158,8 @@ fi
 if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
     SETUP_EXTRA_PACKAGES="git clang $SETUP_EXTRA_PACKAGES"
 fi
-echo "Packages: $SETUP_DISK_ROOT_MOUNT $SETUP_BASE_PACKAGES $SETUP_EXTRA_PACKAGES"
-timer 10 "Installing packages"
+echo "Packages: $SETUP_BASE_PACKAGES $SETUP_EXTRA_PACKAGES"
+timer 5 "Installing packages"
 eval "pacstrap -K $SETUP_DISK_ROOT_MOUNT $SETUP_BASE_PACKAGES $SETUP_EXTRA_PACKAGES" || quit "Failed to install essential packages"
 
 echo "----------------------------------------"
@@ -261,6 +261,9 @@ echo "TIMEOUT=0
     CMDLINE=root=UUID=$(findmnt '$SETUP_DISK_ROOT' -no UUID) rw
     MODULE_PATH=boot:///boot/initramfs-linux.img
 " >/boot/limine/limine.cfg
+
+echo "----------------------------------------"
+echo "Installing dwm..."
 
 echo "----------------------------------------"
 echo "Changing root back to installation media..."
