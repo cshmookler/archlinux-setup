@@ -226,8 +226,7 @@ echo "Moving boot loader to $SETUP_BOOT_LOADER_DIR"
 mkdir $SETUP_BOOT_LOADER_DIR || quit "Failed to create boot loader subdirectory"
 mkdir /etc/pacman.d/hooks || quit "Failed to create the pacman hooks subdirectory"
 if [[ "'$SETUP_BOOT_MODE'" = "UEFI-32" ]] || [[ "'$SETUP_BOOT_MODE'" = "UEFI-64" ]]; then
-    mkdir /boot/esp/EFI || quit "Failed to create EFI subdirectory"
-    mkdir /boot/esp/EFI/BOOT || quit "Failed to create EFI boot subdirectory"
+    mkdir -p /boot/esp/EFI/BOOT || quit "Failed to create EFI system partition mount point"
     echo "[Trigger]
 Operation = Install
 Operation = Upgrade
