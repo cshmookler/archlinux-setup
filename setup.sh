@@ -132,8 +132,8 @@ if [[ "$SETUP_BOOT_MODE" = "UEFI-32" ]] || [[ "$SETUP_BOOT_MODE" = "UEFI-64" ]];
     mkfs.ext4 $SETUP_DISK_ROOT || quit "Failed to format the root partition: $SETUP_DISK_ROOT"
     echo "Formatted EFI partition with FAT32"
     echo "Formatted root partition with EXT4"
-    SETUP_DISK_EFI_MOUNT=/mnt/boot
     SETUP_DISK_ROOT_MOUNT=/mnt
+    SETUP_DISK_EFI_MOUNT=/mnt/boot/EFI
     mount --mkdir $SETUP_DISK_EFI $SETUP_DISK_EFI_MOUNT || quit "Failed to mount $SETUP_DISK_EFI -> $SETUP_DISK_EFI_MOUNT"
     mount --mkdir $SETUP_DISK_ROOT $SETUP_DISK_ROOT_MOUNT || quit "Failed to mount $SETUP_DISK_ROOT -> $SETUP_DISK_ROOT_MOUNT"
     echo "Mounted EFI partition to $SETUP_DISK_EFI_MOUNT"
@@ -182,7 +182,7 @@ quit() {
 if [[ "'$SETUP_BOOT_MODE'" = "UEFI-32" ]] || [[ "'$SETUP_BOOT_MODE'" = "UEFI-64" ]]; then
     echo "----------------------------------------"
     echo "Remounting EFI system partition"
-    mount "'$SETUP_DISK_EFI'" /boot
+    mount "'$SETUP_DISK_EFI'" /boot/EFI
 fi
 
 echo "----------------------------------------"
@@ -269,7 +269,7 @@ echo "TIMEOUT=0
 
 if [[ "'$SETUP_BOOT_MODE'" = "UEFI-32" ]] || [[ "'$SETUP_BOOT_MODE'" = "UEFI-64" ]]; then
     echo "Adding EFI boot label..."
-    efibootmgr --create --disk "'$SETUP_DISK_EFI'" --loader /EFI/BOOT/BOOTX64.EFI --label "Arch Linux" --unicode || quit "Failed to create the EFI boot label"
+    efibootmgr --create --disk "'$SETUP_DISK_EFI'" --loader /BOOT/BOOTX64.EFI --label "Arch Linux" --unicode || quit "Failed to create the EFI boot label"
 fi
 
 echo "----------------------------------------"
