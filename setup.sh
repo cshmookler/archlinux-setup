@@ -132,12 +132,12 @@ if [[ "$SETUP_BOOT_MODE" = "UEFI-32" ]] || [[ "$SETUP_BOOT_MODE" = "UEFI-64" ]];
     mkfs.ext4 $SETUP_DISK_ROOT || quit "Failed to format the root partition: $SETUP_DISK_ROOT"
     echo "Formatted EFI partition with FAT32"
     echo "Formatted root partition with EXT4"
-    SETUP_DISK_ROOT_MOUNT=/mnt
     SETUP_DISK_EFI_MOUNT=/mnt/boot/EFI
-    mount --mkdir $SETUP_DISK_EFI $SETUP_DISK_EFI_MOUNT || quit "Failed to mount $SETUP_DISK_EFI -> $SETUP_DISK_EFI_MOUNT"
+    SETUP_DISK_ROOT_MOUNT=/mnt
     mount --mkdir $SETUP_DISK_ROOT $SETUP_DISK_ROOT_MOUNT || quit "Failed to mount $SETUP_DISK_ROOT -> $SETUP_DISK_ROOT_MOUNT"
-    echo "Mounted EFI partition to $SETUP_DISK_EFI_MOUNT"
+    mount --mkdir $SETUP_DISK_EFI $SETUP_DISK_EFI_MOUNT || quit "Failed to mount $SETUP_DISK_EFI -> $SETUP_DISK_EFI_MOUNT"
     echo "Mounted root partition to $SETUP_DISK_ROOT_MOUNT"
+    echo "Mounted EFI partition to $SETUP_DISK_EFI_MOUNT"
 fi
 
 echo "----------------------------------------"
