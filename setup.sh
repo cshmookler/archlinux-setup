@@ -54,10 +54,10 @@ fi
 if [[ -z "$SETUP_TIME_ZONE" ]]; then
     SETUP_TIME_ZONE="America/Denver"
 fi
-if [[ -z "'$SETUP_HOSTNAME'" ]]; then
+if [[ -z "$SETUP_HOSTNAME" ]]; then
     SETUP_HOSTNAME="arch"
 fi
-if [[ -z "'$SETUP_ROOT_PASSWORD'" ]]; then
+if [[ -z "$SETUP_ROOT_PASSWORD" ]]; then
     SETUP_ROOT_PASSWORD="arch"
 fi
 if [[ -z "$SETUP_RESTART_TIME" ]]; then
