@@ -179,6 +179,12 @@ quit() {
     exit $'"2"'
 }
 
+if [[ "'$SETUP_BOOT_MODE'" = "UEFI-32" ]] || [[ "'$SETUP_BOOT_MODE'" = "UEFI-64" ]]; then
+    echo "----------------------------------------"
+    echo "Remounting EFI system partition"
+    mount "'$SETUP_DISK_EFI'" /boot
+fi
+
 echo "----------------------------------------"
 if [[ -z "'$SETUP_TIME_ZONE'" ]]; then
     SETUP_TIME_ZONE="America/Denver"
@@ -260,6 +266,11 @@ echo "TIMEOUT=0
     CMDLINE=root=UUID=$(findmnt '$SETUP_DISK_ROOT' -no UUID) rw
     MODULE_PATH=boot:///boot/initramfs-linux.img
 " >/boot/limine/limine.cfg
+
+if [[ "'$SETUP_BOOT_MODE'" = "UEFI-32" ]] || [[ "'$SETUP_BOOT_MODE'" = "UEFI-64" ]]; then
+    echo "Adding EFI boot label..."
+    efibootmgr --create --disk "'$SETUP_DISK_EFI'" --loader /EFI/BOOT/BOOTX64.EFI --label "Arch Linux" --unicode || quit "Failed to create the EFI boot label"
+fi
 
 echo "----------------------------------------"
 echo "Installing dwm..."
