@@ -132,7 +132,7 @@ if [[ "$SETUP_BOOT_MODE" = "UEFI-32" ]] || [[ "$SETUP_BOOT_MODE" = "UEFI-64" ]];
     mkfs.ext4 $SETUP_DISK_ROOT || quit "Failed to format the root partition: $SETUP_DISK_ROOT"
     echo "Formatted EFI partition with FAT32"
     echo "Formatted root partition with EXT4"
-    SETUP_DISK_EFI_MOUNT=/mnt/boot/esp
+    SETUP_DISK_EFI_MOUNT=/mnt/boot
     SETUP_DISK_ROOT_MOUNT=/mnt
     mount --mkdir $SETUP_DISK_EFI $SETUP_DISK_EFI_MOUNT || quit "Failed to mount $SETUP_DISK_EFI -> $SETUP_DISK_EFI_MOUNT"
     mount --mkdir $SETUP_DISK_ROOT $SETUP_DISK_ROOT_MOUNT || quit "Failed to mount $SETUP_DISK_ROOT -> $SETUP_DISK_ROOT_MOUNT"
@@ -142,7 +142,7 @@ fi
 
 echo "----------------------------------------"
 echo "Installing packages with pacstrap..."
-SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine zsh zsh-completions man-db man-pages texinfo vim"
+SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr zsh zsh-completions man-db man-pages texinfo vim"
 if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
     SETUP_EXTRA_PACKAGES=""
 fi
@@ -226,7 +226,7 @@ echo "Moving boot loader to $SETUP_BOOT_LOADER_DIR"
 mkdir $SETUP_BOOT_LOADER_DIR || quit "Failed to create boot loader subdirectory"
 mkdir /etc/pacman.d/hooks || quit "Failed to create the pacman hooks subdirectory"
 if [[ "'$SETUP_BOOT_MODE'" = "UEFI-32" ]] || [[ "'$SETUP_BOOT_MODE'" = "UEFI-64" ]]; then
-    mkdir -p /boot/esp/EFI/BOOT || quit "Failed to create EFI system partition mount point"
+    mkdir -p /boot/EFI/BOOT || quit "Failed to create EFI system partition mount point"
     echo "[Trigger]
 Operation = Install
 Operation = Upgrade
@@ -236,7 +236,7 @@ Target = limine
 [Action]
 Description = Deploying Limine after upgrade...
 When = PostTransaction
-Exec = /usr/bin/cp /usr/share/limine/BOOTX64.EFI /boot/esp/EFI/BOOT/
+Exec = /usr/bin/cp /usr/share/limine/BOOTX64.EFI /boot/EFI/BOOT/
     " >/etc/pacman.d/hooks/liminedeploy.hook || quit "Failed to create hook for automatically deplouing the boot loader after upgrade"
 else
     echo "[Trigger]
