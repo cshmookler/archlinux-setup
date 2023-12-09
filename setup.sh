@@ -25,18 +25,52 @@ timer() {
 }
 
 echo "----------------------------------------"
-echo "Changing directory before doing anything else..."
+echo "Configuring options..."
 if [[ -z "$SETUP_DIR" ]]; then
     SETUP_DIR=~
 fi
+if [[ -z "$SETUP_PING" ]]; then
+    SETUP_PING=1.1.1.1
+fi
+if [[ -z "$SETUP_DISK_MIN_BYTES" ]]; then
+    SETUP_DISK_MIN_BYTES=10737418240
+fi
+if [[ -z "$SETUP_HEADLESS" ]]; then
+    SETUP_HEADLESS=false
+fi
+if [[ -z "$SETUP_DEVELOPMENT_TOOLS" ]]; then
+    SETUP_DEVELOPMENT_TOOLS=true
+fi
+if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
+    SETUP_EXTRA_PACKAGES=""
+fi
+SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr man-db man-pages texinfo vim"
+if [[ "$SETUP_HEADLESS" = "false" ]]; then
+    SETUP_EXTRA_PACKAGES="$SETUP_EXTRA_PACKAGES"
+fi
+if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
+    SETUP_EXTRA_PACKAGES="git clang python $SETUP_EXTRA_PACKAGES"
+fi
+if [[ -z "$SETUP_TIME_ZONE" ]]; then
+    SETUP_TIME_ZONE="America/Denver"
+fi
+if [[ -z "'$SETUP_HOSTNAME'" ]]; then
+    SETUP_HOSTNAME="arch"
+fi
+if [[ -z "'$SETUP_ROOT_PASSWORD'" ]]; then
+    SETUP_ROOT_PASSWORD="arch"
+fi
+if [[ -z "$SETUP_RESTART_TIME" ]]; then
+    SETUP_RESTART_TIME=5
+fi
+
+echo "----------------------------------------"
+echo "Changing directory before doing anything else..."
 cd $SETUP_DIR || quit "Failed to change directory to home"
 echo "Changed directory to $SETUP_DIR"
 
 echo "----------------------------------------"
 echo "Checking internet connectivity..."
-if [[ -z "$SETUP_PING" ]]; then
-    SETUP_PING=1.1.1.1
-fi
 if ! ping -c 1 $SETUP_PING; then
     quit "Failed to get a response from $SETUP_PING. Check your internet connection."
 fi
@@ -44,16 +78,13 @@ fi
 echo "----------------------------------------"
 echo "Setting console keyboard layout and font..."
 curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/ubuntu/us-vim.kmap >us-vim.kmap || quit "Failed to download console keyboard layout"
-loadkeys us-vim.kmap || quit "Failed to set console keyboard layout"
-setfont ter-132b || quit "Failed to set console font"
+# loadkeys us-vim.kmap || quit "Failed to set console keyboard layout"
+# setfont ter-132b || quit "Failed to set console font"
 
 echo "----------------------------------------"
 echo "Selecting a suitable disk for installation..."
 if [[ -z "$SETUP_DISK" ]]; then
     SETUP_LSBLK=$(lsblk -bp | grep --color=never " disk ")
-    if [[ -z "$SETUP_DISK_MIN_BYTES" ]]; then
-        SETUP_DISK_MIN_BYTES=10737418240
-    fi
     SETUP_DISK_SIZE=$SETUP_DISK_MIN_BYTES
     while read -r SETUP_DISK_CANDIDATE; do
         SETUP_DISK_CANDIDATE_INDEX=0
@@ -76,6 +107,19 @@ if [[ -z "$SETUP_DISK" ]]; then
     fi
 fi
 echo "Selected disk: $SETUP_DISK"
+
+echo "----------------------------------------"
+echo "Installing Arch Linux with the current configuration:
+\tdisk -> $SETUP_DISK
+\theadless -> $SETUP_HEADLESS
+\tdevelopment tools -> $SETUP_DEVELOPMENT_TOOLS
+\tbase packages -> $SETUP_BASE_PACKAGES
+\textra packages -> $SETUP_EXTRA_PACKAGES
+\ttime zone -> $SETUP_TIME_ZONE
+\thostname -> $SETUP_HOSTNAME
+\troot password -> $SETUP_ROOT_PASSWORD"
+echo "Ctrl+C to cancel installation"
+timer 10 "Beginning installation"
 
 echo "----------------------------------------"
 echo "Partitioning, formatting, and mounting $SETUP_DISK"
@@ -142,24 +186,6 @@ fi
 
 echo "----------------------------------------"
 echo "Installing packages with pacstrap..."
-SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr zsh zsh-completions man-db man-pages texinfo vim"
-if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
-    SETUP_EXTRA_PACKAGES=""
-fi
-if [[ -z "$SETUP_HEADLESS" ]]; then
-    SETUP_HEADLESS=false
-fi
-if [[ "$SETUP_HEADLESS" = "false" ]]; then
-    SETUP_EXTRA_PACKAGES="$SETUP_EXTRA_PACKAGES"
-fi
-if [[ -z "$SETUP_DEVELOPMENT_TOOLS" ]]; then
-    SETUP_DEVELOPMENT_TOOLS=true
-fi
-if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
-    SETUP_EXTRA_PACKAGES="git clang $SETUP_EXTRA_PACKAGES"
-fi
-echo "Packages: $SETUP_BASE_PACKAGES $SETUP_EXTRA_PACKAGES"
-timer 5 "Installing packages"
 eval "pacstrap -K $SETUP_DISK_ROOT_MOUNT $SETUP_BASE_PACKAGES $SETUP_EXTRA_PACKAGES" || quit "Failed to install essential packages"
 
 echo "----------------------------------------"
@@ -167,8 +193,17 @@ echo "Generating fstab..."
 genfstab -U $SETUP_DISK_ROOT_MOUNT >>$SETUP_DISK_ROOT_MOUNT"/etc/fstab" || quit "Failed to generate fstab"
 
 echo "----------------------------------------"
+echo "Adding custom startup scripts..."
+SETUP_VIM_KEYBOARD_LAYOUT="$SETUP_DISK_ROOT_MOUNT/etc/vim_keyboard_layout/us-vim.kmap"
+SETUP_VIM_KEYBOARD_LAYOUT_DIR="$(dirname $SETUP_VIM_KEYBOARD_LAYOUT)"
+mkdir -p $SETUP_VIM_KEYBOARD_LAYOUT_DIR || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR"
+mv ~/us-vim.kmap $SETUP_VIM_KEYBOARD_LAYOUT_DIR || quit "Failed to move ~/us-vim.kmap -> $SETUP_VIM_KEYBOARD_LAYOUT_DIR"
+mkdir -p $SETUP_DISK_ROOT_MOUNT"/etc/profile.d/" || quit "Failed to create $SETUP_DISK_ROOT_MOUNT'/etc/profile.d/'"
+echo "loadkeys $SETUP_VIM_KEYBOARD_LAYOUT" >/etc/profile.d/vim_keyboard_layout.sh || quit "Failed to create /etc/profile.d/vim_keyboard_layout.sh"
+
+echo "----------------------------------------"
 echo "Changing root to $SETUP_DISK_ROOT_MOUNT"
-echo "# zsh config" >$SETUP_DISK_ROOT_MOUNT/root/.zshrc.
+# echo "# zsh config" >$SETUP_DISK_ROOT_MOUNT/root/.zshrc
 arch-chroot $SETUP_DISK_ROOT_MOUNT /bin/zsh -c '
 
 quit() {
@@ -186,11 +221,7 @@ if [[ "'$SETUP_BOOT_MODE'" = "UEFI-32" ]] || [[ "'$SETUP_BOOT_MODE'" = "UEFI-64"
 fi
 
 echo "----------------------------------------"
-if [[ -z "'$SETUP_TIME_ZONE'" ]]; then
-    SETUP_TIME_ZONE="America/Denver"
-else
-    SETUP_TIME_ZONE="'$SETUP_TIME_ZONE'"
-fi
+SETUP_TIME_ZONE="'$SETUP_TIME_ZONE'"
 echo "Setting time zone: $SETUP_TIME_ZONE"
 ln -sf /usr/share/zoneinfo/$SETUP_TIME_ZONE /etc/localtime || quit "Failed to set time zone: $SETUP_TIME_ZONE"
 
@@ -205,11 +236,7 @@ locale-gen || quit "Failed to generate locales"
 echo "LANG=en_US.UTF-8" >/etc/locale.conf || quit "Failed to generate locale configuration file"
 
 echo "----------------------------------------"
-if [[ -z "'$SETUP_HOSTNAME'" ]]; then
-    SETUP_HOSTNAME="arch"
-else
-    SETUP_HOSTNAME="'$SETUP_HOSTNAME'"
-fi
+SETUP_HOSTNAME="'$SETUP_HOSTNAME'"
 echo "Setting hostname: $SETUP_HOSTNAME"
 echo "$SETUP_HOSTNAME" >/etc/hostname || quit "Failed to set hostname: $SETUP_HOSTNAME"
 
@@ -218,19 +245,15 @@ echo "Enabling automatic network configuration..."
 systemctl enable NetworkManager || quit "Failed to enable networking"
 
 echo "----------------------------------------"
-if [[ -z "'$SETUP_ROOT_PASSWORD'" ]]; then
-    SETUP_ROOT_PASSWORD="arch"
-else
-    SETUP_ROOT_PASSWORD="'$SETUP_ROOT_PASSWORD'"
-fi
+SETUP_ROOT_PASSWORD="'$SETUP_ROOT_PASSWORD'"
 echo "Setting root password..."
 usermod --password $(openssl passwd -1 $SETUP_ROOT_PASSWORD) root || quit "Failed to set the root password"
 
 echo "----------------------------------------"
 SETUP_BOOT_LOADER_DIR=/boot/limine
 echo "Moving boot loader to $SETUP_BOOT_LOADER_DIR"
-mkdir $SETUP_BOOT_LOADER_DIR || quit "Failed to create boot loader subdirectory"
-mkdir /etc/pacman.d/hooks || quit "Failed to create the pacman hooks subdirectory"
+mkdir -p $SETUP_BOOT_LOADER_DIR || quit "Failed to create boot loader subdirectory"
+mkdir -p /etc/pacman.d/hooks || quit "Failed to create the pacman hooks subdirectory"
 if [[ "'$SETUP_BOOT_MODE'" = "UEFI-32" ]] || [[ "'$SETUP_BOOT_MODE'" = "UEFI-64" ]]; then
     mkdir -p /boot/EFI/BOOT || quit "Failed to create EFI system partition mount point"
     echo "[Trigger]
@@ -289,9 +312,6 @@ echo "----------------------------------------"
 echo "\e[32;1mSuccessfully installed Arch Linux\e[0m"
 
 echo "----------------------------------------"
-if [[ -z "$SETUP_RESTART_TIME" ]]; then
-    SETUP_RESTART_TIME=5
-fi
 if [[ "$SETUP_RESTART_TIME" -ne "-1" ]]; then
     timer $SETUP_RESTART_TIME "Restarting"
     shutdown -r now || quit "Failed to restart"
