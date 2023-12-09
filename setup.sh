@@ -44,7 +44,7 @@ fi
 if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
     SETUP_EXTRA_PACKAGES=""
 fi
-SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr man-db man-pages texinfo vim"
+SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr zsh zsh-completions man-db man-pages texinfo vim"
 if [[ "$SETUP_HEADLESS" = "false" ]]; then
     SETUP_EXTRA_PACKAGES="$SETUP_EXTRA_PACKAGES"
 fi
