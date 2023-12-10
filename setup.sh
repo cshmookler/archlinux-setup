@@ -201,16 +201,6 @@ echo "Generating fstab..."
 genfstab -U $SETUP_DISK_ROOT_MOUNT >>$SETUP_DISK_ROOT_MOUNT"/etc/fstab" || quit "Failed to generate fstab"
 
 echo "----------------------------------------"
-echo "Adding custom startup scripts..."
-SETUP_VIM_KEYBOARD_LAYOUT_RELATIVE="/etc/vim_keyboard_layout/us-vim.kmap"
-SETUP_VIM_KEYBOARD_LAYOUT="$SETUP_DISK_ROOT_MOUNT$SETUP_VIM_KEYBOARD_LAYOUT_RELATIVE"
-SETUP_VIM_KEYBOARD_LAYOUT_DIR="$(dirname $SETUP_VIM_KEYBOARD_LAYOUT)"
-mkdir -p $SETUP_VIM_KEYBOARD_LAYOUT_DIR || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR"
-mv ~/us-vim.kmap $SETUP_VIM_KEYBOARD_LAYOUT_DIR || quit "Failed to move ~/us-vim.kmap -> $SETUP_VIM_KEYBOARD_LAYOUT_DIR"
-mkdir -p $SETUP_DISK_ROOT_MOUNT"/etc/profile.d/" || quit "Failed to create $SETUP_DISK_ROOT_MOUNT'/etc/profile.d/'"
-echo "loadkeys $SETUP_VIM_KEYBOARD_LAYOUT_RELATIVE" >$SETUP_DISK_ROOT_MOUNT/etc/profile.d/vim_keyboard_layout.sh || quit "Failed to create /etc/profile.d/vim_keyboard_layout.sh"
-
-echo "----------------------------------------"
 echo "Changing root to $SETUP_DISK_ROOT_MOUNT"
 # echo "# zsh config" >$SETUP_DISK_ROOT_MOUNT/root/.zshrc
 arch-chroot $SETUP_DISK_ROOT_MOUNT /bin/zsh -c '
@@ -228,6 +218,23 @@ if [[ "'$SETUP_BOOT_MODE'" = "UEFI-32" ]] || [[ "'$SETUP_BOOT_MODE'" = "UEFI-64"
     echo "Remounting EFI system partition"
     mount "'$SETUP_DISK_EFI'" /efi/
 fi
+
+echo "----------------------------------------"
+echo "Adding custom startup scripts..."
+SETUP_VIM_KEYBOARD_LAYOUT="/etc/vim_keyboard_layout/us-vim.kmap"
+SETUP_VIM_KEYBOARD_LAYOUT_DIR="$(dirname $SETUP_VIM_KEYBOARD_LAYOUT)"
+mkdir -p $SETUP_VIM_KEYBOARD_LAYOUT_DIR || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR"
+mv ~/us-vim.kmap $SETUP_VIM_KEYBOARD_LAYOUT_DIR || quit "Failed to move ~/us-vim.kmap -> $SETUP_VIM_KEYBOARD_LAYOUT_DIR"
+mkdir -p $SETUP_DISK_ROOT_MOUNT"/etc/profile.d/" || quit "Failed to create $SETUP_DISK_ROOT_MOUNT'/etc/profile.d/'"
+echo "loadkeys $SETUP_VIM_KEYBOARD_LAYOUT" >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/load.sh || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR/load.sh"
+mkdir -p $SETUP_DISK_ROOT_MOUNT/etc/systemd/system || quit "Failed to create $SETUP_DISK_ROOT_MOUNT/etc/systemd/system"
+echo "[Unit]
+Description=Loads the vim keyboard layout on startup
+After=multi-user.target
+
+[Service]
+ExecStart=/bin/bash /etc/vim_keyboard_layout/load.sh" >$SETUP_DISK_ROOT_MOUNT/etc/systemd/system/vim-keyboard-layout.service || quit "Failed to create $SETUP_DISK_ROOT_MOUNT/etc/systemd/system"
+systemctl enable vim-keyboard-layout || quit "Failed to enable custom keyboard layout"
 
 echo "----------------------------------------"
 SETUP_TIME_ZONE="'$SETUP_TIME_ZONE'"
