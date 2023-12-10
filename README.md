@@ -21,6 +21,7 @@ export SETUP_HOSTNAME="arch"            # The system hostname
 export SETUP_ROOT_PASSWORD="arch"       # The root password
 export SETUP_USER="main"                # The name of the non-root account
 export SETUP_USER_PASSWORD="main"       # The password for the non-root account
+export SETUP_SUDO_GROUP="wheel"         # The name of the group with sudo privileges
 export SETUP_RESTART_TIME=5             # The timed delay before restarting once installation is complete (-1 cancels the restart)
 ```
 

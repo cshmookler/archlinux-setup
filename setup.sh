@@ -66,6 +66,9 @@ fi
 if [[ -z "$SETUP_USER_PASSWORD" ]]; then
     SETUP_USER_PASSWORD="main"
 fi
+if [[ -z "$SETUP_SUDO_GROUP" ]]; then
+    SETUP_SUDO_GROUP="wheel"
+fi
 if [[ -z "$SETUP_RESTART_TIME" ]]; then
     SETUP_RESTART_TIME=5
 fi
@@ -119,7 +122,8 @@ echo "Installing Arch Linux with the current configuration:
               hostname -> $SETUP_HOSTNAME
          root password -> $SETUP_ROOT_PASSWORD
          non-root user -> $SETUP_USER
-non-root user password -> $SETUP_USER_PASSWORD"
+non-root user password -> $SETUP_USER_PASSWORD
+            sudo group -> $SETUP_SUDO_GROUP"
 echo "Ctrl+C to cancel installation"
 timer 10 "Beginning installation"
 
@@ -218,16 +222,21 @@ echo "Adding custom startup scripts..."
 SETUP_VIM_KEYBOARD_LAYOUT="/etc/vim_keyboard_layout/us-vim.kmap"
 SETUP_VIM_KEYBOARD_LAYOUT_DIR="$(dirname $SETUP_VIM_KEYBOARD_LAYOUT)"
 mkdir -p $SETUP_VIM_KEYBOARD_LAYOUT_DIR || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR"
-curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/ubuntu/us-vim.kmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/us-vim.kmap || quit "Failed to download console keyboard layout"
+curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/tty/us.kmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/us.kmap || quit "Failed to download the default console keyboard layout"
+curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/tty/us-vim.kmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/us-vim.kmap || quit "Failed to download the custom console keyboard layout"
+if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
+    curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/x11/xmodmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/xmodmap || quit "Failed to download the default X11 keyboard layout"
+    curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/x11/xmodmap-vim >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/xmodmap-vim || quit "Failed to download the custom X11 keyboard layout"
+fi
 mkdir -p $SETUP_DISK_ROOT_MOUNT"/etc/profile.d/" || quit "Failed to create $SETUP_DISK_ROOT_MOUNT'/etc/profile.d/'"
-echo "loadkeys $SETUP_VIM_KEYBOARD_LAYOUT; setfont ter-132b;" >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/load.sh || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR/load.sh"
+echo "loadkeys $SETUP_VIM_KEYBOARD_LAYOUT; setfont ter-132b;" >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/load_tty_layout.sh || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR/load_tty_layout.sh"
 mkdir -p $SETUP_DISK_ROOT_MOUNT/etc/systemd/system || quit "Failed to create $SETUP_DISK_ROOT_MOUNT/etc/systemd/system"
 echo "[Unit]
 Description=Loads the vim keyboard layout on startup
 After=multi-user.target
 
 [Service]
-ExecStart=/bin/bash /etc/vim_keyboard_layout/load.sh
+ExecStart=/bin/bash /etc/vim_keyboard_layout/load_tty_layout.sh
 
 [Install]
 WantedBy=graphical.target" >$SETUP_DISK_ROOT_MOUNT/etc/systemd/system/vim-keyboard-layout.service || quit "Failed to create $SETUP_DISK_ROOT_MOUNT/etc/systemd/system"
@@ -334,14 +343,21 @@ echo "Creating user \"$SETUP_USER\"..."
 useradd -mg users $SETUP_USER
 usermod --password $(openssl passwd -1 "'$SETUP_USER_PASSWORD'") $SETUP_USER
 if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
-    echo "exec dwm" >/home/$SETUP_USER/.xinitrc
+    echo "xmodmap /etc/vim_keyboard_layout/xmodmap-vim
+exec dwm" >/home/$SETUP_USER/.xinitrc
     echo "
-    # Start the X server on login
-    if [ -z \"$\"\"DISPLAY\" ] && [ \"$\"\"XDG_VTNR\" = 1 ]; then
-        exec startx
-    fi
-    " >>/home/$SETUP_USER/.bash_profile
+# Start the X server on login
+if [ -z \"$\"\"DISPLAY\" ] && [ \"$\"\"XDG_VTNR\" = 1 ]; then
+    startx
 fi
+" >>/home/$SETUP_USER/.bash_profile
+fi
+
+echo "----------------------------------------"
+echo "Giving the user \"$SETUP_USER\" root privileges..."
+SETUP_SUDO_GROUP="'$SETUP_SUDO_GROUP'"
+echo "%$SETUP_SUDO_GROUP ALL=(ALL:ALL) ALL" | sudo EDITOR="tee -a" visudo
+usermod -aG $SETUP_SUDO_GROUP $SETUP_USER
 
 echo "----------------------------------------"
 echo "Changing root back to installation media..."
