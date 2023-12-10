@@ -331,6 +331,12 @@ useradd -mg users $SETUP_USER
 usermod --password $(openssl passwd -1 "'$SETUP_USER_PASSWORD'") $SETUP_USER
 if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     echo "exec dwm" >/home/$SETUP_USER/.xinitrc
+    echo "
+    # Start the X server on login
+    if [ -z \"$\"\"DISPLAY\" ] && [ \"$\"\"XDG_VTNR\" = 1 ]; then
+        exec startx
+    fi
+    " >>/home/$SETUP_USER/.bash_profile
 fi
 
 echo "----------------------------------------"
