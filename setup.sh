@@ -227,7 +227,10 @@ Description=Loads the vim keyboard layout on startup
 After=multi-user.target
 
 [Service]
-ExecStart=/bin/bash /etc/vim_keyboard_layout/load.sh" >$SETUP_DISK_ROOT_MOUNT/etc/systemd/system/vim-keyboard-layout.service || quit "Failed to create $SETUP_DISK_ROOT_MOUNT/etc/systemd/system"
+ExecStart=/bin/bash /etc/vim_keyboard_layout/load.sh
+
+[Install]
+WantedBy=graphical.target" >$SETUP_DISK_ROOT_MOUNT/etc/systemd/system/vim-keyboard-layout.service || quit "Failed to create $SETUP_DISK_ROOT_MOUNT/etc/systemd/system"
 systemctl enable vim-keyboard-layout || quit "Failed to enable custom keyboard layout"
 
 echo "----------------------------------------"
