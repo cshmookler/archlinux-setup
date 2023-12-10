@@ -324,10 +324,10 @@ make clean install
 
 echo "----------------------------------------"
 SETUP_USER="'$SETUP_USER'"
-echo "Creating user $SETUP_USER..."
+echo "Creating user \"$SETUP_USER\"..."
 useradd -mg users $SETUP_USER
 usermod --password $(openssl passwd -1 "'$SETUP_USER_PASSWORD'") $SETUP_USER
-if [[ "'$SETUP_HEADLESS'" = "true" ]]; then
+if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     echo "exec dwm" >/home/$SETUP_USER/.xinitrc
 fi
 
