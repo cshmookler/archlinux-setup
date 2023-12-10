@@ -82,12 +82,6 @@ if ! ping -c 1 $SETUP_PING; then
 fi
 
 echo "----------------------------------------"
-echo "Setting console keyboard layout and font..."
-curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/ubuntu/us-vim.kmap >us-vim.kmap || quit "Failed to download console keyboard layout"
-# loadkeys us-vim.kmap || quit "Failed to set console keyboard layout"
-# setfont ter-132b || quit "Failed to set console font"
-
-echo "----------------------------------------"
 echo "Selecting a suitable disk for installation..."
 if [[ -z "$SETUP_DISK" ]]; then
     SETUP_LSBLK=$(lsblk -bp | grep --color=never " disk ")
@@ -224,9 +218,9 @@ echo "Adding custom startup scripts..."
 SETUP_VIM_KEYBOARD_LAYOUT="/etc/vim_keyboard_layout/us-vim.kmap"
 SETUP_VIM_KEYBOARD_LAYOUT_DIR="$(dirname $SETUP_VIM_KEYBOARD_LAYOUT)"
 mkdir -p $SETUP_VIM_KEYBOARD_LAYOUT_DIR || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR"
-mv ~/us-vim.kmap $SETUP_VIM_KEYBOARD_LAYOUT_DIR || quit "Failed to move ~/us-vim.kmap -> $SETUP_VIM_KEYBOARD_LAYOUT_DIR"
+curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/ubuntu/us-vim.kmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/us-vim.kmap || quit "Failed to download console keyboard layout"
 mkdir -p $SETUP_DISK_ROOT_MOUNT"/etc/profile.d/" || quit "Failed to create $SETUP_DISK_ROOT_MOUNT'/etc/profile.d/'"
-echo "loadkeys $SETUP_VIM_KEYBOARD_LAYOUT" >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/load.sh || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR/load.sh"
+echo "loadkeys $SETUP_VIM_KEYBOARD_LAYOUT; setfont ter-132b;" >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/load.sh || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR/load.sh"
 mkdir -p $SETUP_DISK_ROOT_MOUNT/etc/systemd/system || quit "Failed to create $SETUP_DISK_ROOT_MOUNT/etc/systemd/system"
 echo "[Unit]
 Description=Loads the vim keyboard layout on startup
