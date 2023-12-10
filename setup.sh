@@ -116,14 +116,16 @@ echo "Selected disk: $SETUP_DISK"
 
 echo "----------------------------------------"
 echo "Installing Arch Linux with the current configuration:
-\tdisk -> $SETUP_DISK
-\theadless -> $SETUP_HEADLESS
-\tdevelopment tools -> $SETUP_DEVELOPMENT_TOOLS
-\tbase packages -> $SETUP_BASE_PACKAGES
-\textra packages -> $SETUP_EXTRA_PACKAGES
-\ttime zone -> $SETUP_TIME_ZONE
-\thostname -> $SETUP_HOSTNAME
-\troot password -> $SETUP_ROOT_PASSWORD"
+                  disk -> $SETUP_DISK
+              headless -> $SETUP_HEADLESS
+     development tools -> $SETUP_DEVELOPMENT_TOOLS
+         base packages -> $SETUP_BASE_PACKAGES
+        extra packages -> $SETUP_EXTRA_PACKAGES
+             time zone -> $SETUP_TIME_ZONE
+              hostname -> $SETUP_HOSTNAME
+         root password -> $SETUP_ROOT_PASSWORD
+         non-root user -> $SETUP_USER
+non-root user password -> $SETUP_USER_PASSWORD
 echo "Ctrl+C to cancel installation"
 timer 10 "Beginning installation"
 
