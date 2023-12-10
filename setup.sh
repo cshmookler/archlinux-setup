@@ -44,7 +44,7 @@ fi
 if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
     SETUP_EXTRA_PACKAGES=""
 fi
-SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completions zsh zsh-completions man-db man-pages texinfo zip unzip curl"
+SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion zsh zsh-completions man-db man-pages texinfo zip unzip curl"
 if [[ "$SETUP_HEADLESS" = "false" ]]; then
     SETUP_EXTRA_PACKAGES="xorg-xinit xorg $SETUP_EXTRA_PACKAGES"
 fi
