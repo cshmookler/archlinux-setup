@@ -19,6 +19,8 @@ export SETUP_EXTRA_PACKAGES=""          # Extra packages to install on the syste
 export SETUP_TIME_ZONE=America/Denver   # The system time zone
 export SETUP_HOSTNAME="arch"            # The system hostname
 export SETUP_ROOT_PASSWORD="arch"       # The root password
+export SETUP_USER="main"                # The name of the non-root account
+export SETUP_USER_PASSWORD="main"       # The password for the non-root account
 export SETUP_RESTART_TIME=5             # The timed delay before restarting once installation is complete (-1 cancels the restart)
 ```
 

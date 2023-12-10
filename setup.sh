@@ -46,7 +46,7 @@ if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
 fi
 SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr zsh zsh-completions man-db man-pages texinfo vim"
 if [[ "$SETUP_HEADLESS" = "false" ]]; then
-    SETUP_EXTRA_PACKAGES="$SETUP_EXTRA_PACKAGES"
+    SETUP_EXTRA_PACKAGES="xorg-xinit xorg $SETUP_EXTRA_PACKAGES"
 fi
 if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
     SETUP_EXTRA_PACKAGES="git clang python $SETUP_EXTRA_PACKAGES"
@@ -59,6 +59,12 @@ if [[ -z "$SETUP_HOSTNAME" ]]; then
 fi
 if [[ -z "$SETUP_ROOT_PASSWORD" ]]; then
     SETUP_ROOT_PASSWORD="arch"
+fi
+if [[ -z "$SETUP_USER" ]]; then
+    SETUP_USER="main"
+fi
+if [[ -z "$SETUP_USER_PASSWORD" ]]; then
+    SETUP_USER_PASSWORD="main"
 fi
 if [[ -z "$SETUP_RESTART_TIME" ]]; then
     SETUP_RESTART_TIME=5
@@ -297,6 +303,33 @@ fi
 
 echo "----------------------------------------"
 echo "Installing dwm..."
+SETUP_DWM_SOURCE=/etc/dwm_source
+git clone --depth=1 https://git.suckless.org/dwm $SETUP_DWM_SOURCE
+cd $SETUP_DWM_SOURCE
+make clean install
+
+echo "----------------------------------------"
+echo "Installing st..."
+SETUP_DWM_SOURCE=/etc/st_source
+git clone --depth=1 https://git.suckless.org/st $SETUP_ST_SOURCE
+cd $SETUP_ST_SOURCE
+make clean install
+
+echo "----------------------------------------"
+echo "Installing dmenu..."
+SETUP_DMENU_SOURCE=/etc/dmenu_source
+git clone --depth=1 https://git.suckless.org/dmenu $SETUP_DMENU_SOURCE
+cd $SETUP_DMENU_SOURCE
+make clean install
+
+echo "----------------------------------------"
+SETUP_USER="'$SETUP_USER'"
+echo "Creating user $SETUP_USER..."
+useradd -mg users $SETUP_USER
+usermod --password $(openssl passwd -1 "'$SETUP_USER_PASSWORD'") $SETUP_USER
+if [[ "'$SETUP_HEADLESS'" = "true" ]]; then
+    echo "exec dwm" >/home/$SETUP_USER/.xinitrc
+fi
 
 echo "----------------------------------------"
 echo "Changing root back to installation media..."
