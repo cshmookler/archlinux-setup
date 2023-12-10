@@ -44,7 +44,7 @@ fi
 if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
     SETUP_EXTRA_PACKAGES=""
 fi
-SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr zsh zsh-completions man-db man-pages texinfo vim"
+SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completions zsh zsh-completions man-db man-pages texinfo vim"
 if [[ "$SETUP_HEADLESS" = "false" ]]; then
     SETUP_EXTRA_PACKAGES="xorg-xinit xorg $SETUP_EXTRA_PACKAGES"
 fi
@@ -113,6 +113,7 @@ echo "Selected disk: $SETUP_DISK"
 
 echo "----------------------------------------"
 echo "Installing Arch Linux with the current configuration:
+
                   disk -> $SETUP_DISK
               headless -> $SETUP_HEADLESS
      development tools -> $SETUP_DEVELOPMENT_TOOLS
@@ -123,8 +124,8 @@ echo "Installing Arch Linux with the current configuration:
          root password -> $SETUP_ROOT_PASSWORD
          non-root user -> $SETUP_USER
 non-root user password -> $SETUP_USER_PASSWORD
-            sudo group -> $SETUP_SUDO_GROUP"
-echo "Ctrl+C to cancel installation"
+            sudo group -> $SETUP_SUDO_GROUP
+"
 timer 10 "Beginning installation"
 
 echo "----------------------------------------"
@@ -309,7 +310,7 @@ echo "TIMEOUT=0
     KERNEL_PATH=boot:///boot/vmlinuz-linux
     CMDLINE=root=UUID=$(findmnt '$SETUP_DISK_ROOT' -no UUID) rw
     MODULE_PATH=boot:///boot/initramfs-linux.img
-" >/boot/limine/limine.cfg
+" >/boot/limine/limine.cfg || quit "Failed to create the boot loader configuration file"
 
 if [[ "'$SETUP_BOOT_MODE'" = "UEFI-32" ]] || [[ "'$SETUP_BOOT_MODE'" = "UEFI-64" ]]; then
     echo "Adding EFI boot label..."
@@ -319,45 +320,45 @@ fi
 echo "----------------------------------------"
 echo "Installing dwm..."
 SETUP_DWM_SOURCE=/etc/dwm_source
-git clone --depth=1 https://git.suckless.org/dwm $SETUP_DWM_SOURCE
-cd $SETUP_DWM_SOURCE
-make clean install
+git clone --depth=1 https://git.suckless.org/dwm $SETUP_DWM_SOURCE || quit "Failed to clone dwm"
+cd $SETUP_DWM_SOURCE || quit "Failed to change directory to $SETUP_DWM_SOURCE"
+make clean install || quit "Failed to build dwm from source"
 
 echo "----------------------------------------"
 echo "Installing st..."
 SETUP_ST_SOURCE=/etc/st_source
-git clone --depth=1 https://git.suckless.org/st $SETUP_ST_SOURCE
-cd $SETUP_ST_SOURCE
-make clean install
+git clone --depth=1 https://git.suckless.org/st $SETUP_ST_SOURCE || quit "Failed to clone st"
+cd $SETUP_ST_SOURCE || quit "Failed to change directory to $SETUP_ST_SOURCE"
+make clean install || quit "Failed to build st from source"
 
 echo "----------------------------------------"
 echo "Installing dmenu..."
 SETUP_DMENU_SOURCE=/etc/dmenu_source
-git clone --depth=1 https://git.suckless.org/dmenu $SETUP_DMENU_SOURCE
-cd $SETUP_DMENU_SOURCE
-make clean install
+git clone --depth=1 https://git.suckless.org/dmenu $SETUP_DMENU_SOURCE || quit "Failed to clone dmenu"
+cd $SETUP_DMENU_SOURCE || quit "Failed to change directory to $SETUP_DMENU_SOURCE"
+make clean install || quit "Failed to build dmenu from source"
 
 echo "----------------------------------------"
 SETUP_USER="'$SETUP_USER'"
 echo "Creating user \"$SETUP_USER\"..."
-useradd -mg users $SETUP_USER
-usermod --password $(openssl passwd -1 "'$SETUP_USER_PASSWORD'") $SETUP_USER
+useradd -mg users $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
+usermod --password $(openssl passwd -1 "'$SETUP_USER_PASSWORD'") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
 if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     echo "xmodmap /etc/vim_keyboard_layout/xmodmap-vim
-exec dwm" >/home/$SETUP_USER/.xinitrc
+exec dwm" >/home/$SETUP_USER/.xinitrc || quit "Failed to create the X server init file"
     echo "
 # Start the X server on login
 if [ -z \"\$DISPLAY\" ] && [ \"\$XDG_VTNR\" = 1 ]; then
     startx
 fi
-" >>/home/$SETUP_USER/.bash_profile
+" >>/home/$SETUP_USER/.bash_profile || quit "Failed to enable starting the X server upon login"
 fi
 
 echo "----------------------------------------"
 echo "Giving the user \"$SETUP_USER\" root privileges..."
 SETUP_SUDO_GROUP="'$SETUP_SUDO_GROUP'"
-echo "%$SETUP_SUDO_GROUP ALL=(ALL:ALL) ALL" | sudo EDITOR="tee -a" visudo
-usermod -aG $SETUP_SUDO_GROUP $SETUP_USER
+echo "%$SETUP_SUDO_GROUP ALL=(ALL:ALL) ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to give sudo privileges to the \"$SETUP_SUDO_GROUP\" group"
+usermod -aG $SETUP_SUDO_GROUP $SETUP_USER || quit "Failed to give sudo privileges to user \"$SETUP_USER\""
 
 echo "----------------------------------------"
 echo "Changing root back to installation media..."
