@@ -346,6 +346,7 @@ if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
     SETUP_NVIM_SOURCE=/etc/nvim_source
     mkdir -p $SETUP_NVIM_SOURCE || quit "Failed to create neovim source directory"
     curl -L https://github.com/neovim/neovim/archive/refs/tags/nightly.tar.gz -o $SETUP_NVIM_SOURCE/nightly.tar.gz || quit "Failed to download neovim"
+    cd $SETUP_NVIM_SOURCE || quit "Failed to change directory to $SETUP_NVIM_SOURCE"
     tar -xf nightly.tar.gz || quit "Failed to extract neovim"
     cd $SETUP_NVIM_SOURCE/neovim-nightly || quit "Failed to change directory to $SETUP_NVIM_SOURCE/neovim-nightly"
     make CMAKE_BUILD_TYPE=RelWithDebInfo install || quit "Failed to build neovim from source"
