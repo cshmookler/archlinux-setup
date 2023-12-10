@@ -44,12 +44,12 @@ fi
 if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
     SETUP_EXTRA_PACKAGES=""
 fi
-SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completions zsh zsh-completions man-db man-pages texinfo vim"
+SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completions zsh zsh-completions man-db man-pages texinfo zip unzip curl"
 if [[ "$SETUP_HEADLESS" = "false" ]]; then
     SETUP_EXTRA_PACKAGES="xorg-xinit xorg $SETUP_EXTRA_PACKAGES"
 fi
 if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
-    SETUP_EXTRA_PACKAGES="git clang python $SETUP_EXTRA_PACKAGES"
+    SETUP_EXTRA_PACKAGES="git clang python cmake ninja $SETUP_EXTRA_PACKAGES"
 fi
 if [[ -z "$SETUP_TIME_ZONE" ]]; then
     SETUP_TIME_ZONE="America/Denver"
@@ -317,26 +317,38 @@ if [[ "'$SETUP_BOOT_MODE'" = "UEFI-32" ]] || [[ "'$SETUP_BOOT_MODE'" = "UEFI-64"
     efibootmgr --create --disk "'$SETUP_DISK_EFI'" --loader /BOOTX64.EFI --label "Arch Linux" --unicode || quit "Failed to create the EFI boot label"
 fi
 
-echo "----------------------------------------"
-echo "Installing dwm..."
-SETUP_DWM_SOURCE=/etc/dwm_source
-git clone --depth=1 https://git.suckless.org/dwm $SETUP_DWM_SOURCE || quit "Failed to clone dwm"
-cd $SETUP_DWM_SOURCE || quit "Failed to change directory to $SETUP_DWM_SOURCE"
-make clean install || quit "Failed to build dwm from source"
+if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
+    echo "----------------------------------------"
+    echo "Installing dwm..."
+    SETUP_DWM_SOURCE=/etc/dwm_source
+    git clone --depth=1 https://git.suckless.org/dwm $SETUP_DWM_SOURCE || quit "Failed to clone dwm"
+    cd $SETUP_DWM_SOURCE || quit "Failed to change directory to $SETUP_DWM_SOURCE"
+    make clean install || quit "Failed to build dwm from source"
 
-echo "----------------------------------------"
-echo "Installing st..."
-SETUP_ST_SOURCE=/etc/st_source
-git clone --depth=1 https://git.suckless.org/st $SETUP_ST_SOURCE || quit "Failed to clone st"
-cd $SETUP_ST_SOURCE || quit "Failed to change directory to $SETUP_ST_SOURCE"
-make clean install || quit "Failed to build st from source"
+    echo "----------------------------------------"
+    echo "Installing st..."
+    SETUP_ST_SOURCE=/etc/st_source
+    git clone --depth=1 https://git.suckless.org/st $SETUP_ST_SOURCE || quit "Failed to clone st"
+    cd $SETUP_ST_SOURCE || quit "Failed to change directory to $SETUP_ST_SOURCE"
+    make clean install || quit "Failed to build st from source"
 
-echo "----------------------------------------"
-echo "Installing dmenu..."
-SETUP_DMENU_SOURCE=/etc/dmenu_source
-git clone --depth=1 https://git.suckless.org/dmenu $SETUP_DMENU_SOURCE || quit "Failed to clone dmenu"
-cd $SETUP_DMENU_SOURCE || quit "Failed to change directory to $SETUP_DMENU_SOURCE"
-make clean install || quit "Failed to build dmenu from source"
+    echo "----------------------------------------"
+    echo "Installing dmenu..."
+    SETUP_DMENU_SOURCE=/etc/dmenu_source
+    git clone --depth=1 https://git.suckless.org/dmenu $SETUP_DMENU_SOURCE || quit "Failed to clone dmenu"
+    cd $SETUP_DMENU_SOURCE || quit "Failed to change directory to $SETUP_DMENU_SOURCE"
+    make clean install || quit "Failed to build dmenu from source"
+fi
+
+if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
+    echo "----------------------------------------"
+    echo "Installing neovim..."
+    SETUP_NVIM_SOURCE=/etc/nvim_source
+    curl -L https://github.com/neovim/neovim/archive/refs/tags/nightly.tar.gz -o $SETUP_NVIM_SOURCE/nightly.tar.gz || quit "Failed to download neovim"
+    tar -xf nightly.tar.gz || quit "Failed to extract neovim"
+    cd $SETUP_NVIM_SOURCE/neovim-nightly || quit "Failed to change directory to $SETUP_NVIM_SOURCE/neovim-nightly"
+    make CMAKE_BUILD_TYPE=RelWithDebInfo install || quit "Failed to build neovim from source"
+fi
 
 echo "----------------------------------------"
 SETUP_USER="'$SETUP_USER'"
@@ -359,6 +371,10 @@ echo "Giving the user \"$SETUP_USER\" root privileges..."
 SETUP_SUDO_GROUP="'$SETUP_SUDO_GROUP'"
 echo "%$SETUP_SUDO_GROUP ALL=(ALL:ALL) ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to give sudo privileges to the \"$SETUP_SUDO_GROUP\" group"
 usermod -aG $SETUP_SUDO_GROUP $SETUP_USER || quit "Failed to give sudo privileges to user \"$SETUP_USER\""
+
+echo "----------------------------------------"
+echo "Downloading custom neovim configuration for user \"$SETUP_USER\"..."
+git clone https://github.com/cshmookler/config.nvim /home/$SETUP_USER/.config/nvim || quit "Failed to download custom neovim configuration for user \"$SETUP_USER\""
 
 echo "----------------------------------------"
 echo "Changing root back to installation media..."
