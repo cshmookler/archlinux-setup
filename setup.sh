@@ -325,7 +325,7 @@ make clean install
 
 echo "----------------------------------------"
 echo "Installing st..."
-SETUP_DWM_SOURCE=/etc/st_source
+SETUP_ST_SOURCE=/etc/st_source
 git clone --depth=1 https://git.suckless.org/st $SETUP_ST_SOURCE
 cd $SETUP_ST_SOURCE
 make clean install
@@ -347,7 +347,7 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
 exec dwm" >/home/$SETUP_USER/.xinitrc
     echo "
 # Start the X server on login
-if [ -z \"$\"\"DISPLAY\" ] && [ \"$\"\"XDG_VTNR\" = 1 ]; then
+if [ -z \"\$DISPLAY\" ] && [ \"\$XDG_VTNR\" = 1 ]; then
     startx
 fi
 " >>/home/$SETUP_USER/.bash_profile
