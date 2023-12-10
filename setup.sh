@@ -125,7 +125,7 @@ echo "Installing Arch Linux with the current configuration:
               hostname -> $SETUP_HOSTNAME
          root password -> $SETUP_ROOT_PASSWORD
          non-root user -> $SETUP_USER
-non-root user password -> $SETUP_USER_PASSWORD
+non-root user password -> $SETUP_USER_PASSWORD"
 echo "Ctrl+C to cancel installation"
 timer 10 "Beginning installation"
 
