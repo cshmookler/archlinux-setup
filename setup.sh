@@ -44,12 +44,12 @@ fi
 if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
     SETUP_EXTRA_PACKAGES=""
 fi
-SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion zsh zsh-completions man-db man-pages texinfo zip unzip curl"
+SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion zsh zsh-completions man-db man-pages texinfo zip unzip curl htop lynx"
 if [[ "$SETUP_HEADLESS" = "false" ]]; then
     SETUP_EXTRA_PACKAGES="xorg-xinit xorg $SETUP_EXTRA_PACKAGES"
 fi
 if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
-    SETUP_EXTRA_PACKAGES="git clang python cmake ninja $SETUP_EXTRA_PACKAGES"
+    SETUP_EXTRA_PACKAGES="git clang python python-black cmake ninja lua-language-server bash-language-server ttf-hack-nerd noto-fonts-emoji aspell aspell-en $SETUP_EXTRA_PACKAGES"
 fi
 if [[ -z "$SETUP_TIME_ZONE" ]]; then
     SETUP_TIME_ZONE="America/Denver"
@@ -126,7 +126,7 @@ echo "Installing Arch Linux with the current configuration:
 non-root user password -> $SETUP_USER_PASSWORD
             sudo group -> $SETUP_SUDO_GROUP
 "
-timer 10 "Beginning installation"
+timer 5 "Beginning installation"
 
 echo "----------------------------------------"
 echo "Partitioning, formatting, and mounting $SETUP_DISK"
@@ -350,6 +350,9 @@ if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
     tar -xf nightly.tar.gz || quit "Failed to extract neovim"
     cd $SETUP_NVIM_SOURCE/neovim-nightly || quit "Failed to change directory to $SETUP_NVIM_SOURCE/neovim-nightly"
     make CMAKE_BUILD_TYPE=RelWithDebInfo install || quit "Failed to build neovim from source"
+
+    echo "----------------------------------------"
+    echo "Generating dictionary for neovim..."
 fi
 
 echo "----------------------------------------"
@@ -374,9 +377,11 @@ SETUP_SUDO_GROUP="'$SETUP_SUDO_GROUP'"
 echo "%$SETUP_SUDO_GROUP ALL=(ALL:ALL) ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to give sudo privileges to the \"$SETUP_SUDO_GROUP\" group"
 usermod -aG $SETUP_SUDO_GROUP $SETUP_USER || quit "Failed to give sudo privileges to user \"$SETUP_USER\""
 
-echo "----------------------------------------"
-echo "Downloading custom neovim configuration for user \"$SETUP_USER\"..."
-git clone https://github.com/cshmookler/config.nvim /home/$SETUP_USER/.config/nvim || quit "Failed to download custom neovim configuration for user \"$SETUP_USER\""
+if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
+    echo "----------------------------------------"
+    echo "Downloading custom neovim configuration for user \"$SETUP_USER\"..."
+    git clone https://github.com/cshmookler/config.nvim /home/$SETUP_USER/.config/nvim || quit "Failed to download custom neovim configuration for user \"$SETUP_USER\""
+fi
 
 echo "----------------------------------------"
 echo "Changing root back to installation media..."
