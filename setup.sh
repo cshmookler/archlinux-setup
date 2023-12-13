@@ -226,31 +226,6 @@ quit() {
 }
 
 echo "----------------------------------------"
-echo "Adding custom startup scripts..."
-SETUP_VIM_KEYBOARD_LAYOUT="/etc/vim_keyboard_layout/us-vim.kmap"
-SETUP_VIM_KEYBOARD_LAYOUT_DIR="$(dirname $SETUP_VIM_KEYBOARD_LAYOUT)"
-mkdir -p $SETUP_VIM_KEYBOARD_LAYOUT_DIR || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR"
-curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/tty/us.kmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/us.kmap || quit "Failed to download the default console keyboard layout"
-curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/tty/us-vim.kmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/us-vim.kmap || quit "Failed to download the custom console keyboard layout"
-if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
-    curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/x11/xmodmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/xmodmap || quit "Failed to download the default X11 keyboard layout"
-    curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/x11/xmodmap-vim >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/xmodmap-vim || quit "Failed to download the custom X11 keyboard layout"
-fi
-mkdir -p $SETUP_DISK_ROOT_MOUNT"/etc/profile.d/" || quit "Failed to create $SETUP_DISK_ROOT_MOUNT'/etc/profile.d/'"
-echo "loadkeys $SETUP_VIM_KEYBOARD_LAYOUT; setfont ter-132b;" >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/load_tty_layout.sh || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR/load_tty_layout.sh"
-mkdir -p $SETUP_DISK_ROOT_MOUNT/etc/systemd/system || quit "Failed to create $SETUP_DISK_ROOT_MOUNT/etc/systemd/system"
-echo "[Unit]
-Description=Loads the vim keyboard layout on startup
-After=multi-user.target
-
-[Service]
-ExecStart=/bin/bash /etc/vim_keyboard_layout/load_tty_layout.sh
-
-[Install]
-WantedBy=graphical.target" >$SETUP_DISK_ROOT_MOUNT/etc/systemd/system/vim-keyboard-layout.service || quit "Failed to create $SETUP_DISK_ROOT_MOUNT/etc/systemd/system"
-systemctl enable vim-keyboard-layout || quit "Failed to enable custom keyboard layout"
-
-echo "----------------------------------------"
 SETUP_TIME_ZONE="'$SETUP_TIME_ZONE'"
 echo "Setting time zone: $SETUP_TIME_ZONE"
 ln -sf /usr/share/zoneinfo/$SETUP_TIME_ZONE /etc/localtime || quit "Failed to set time zone: $SETUP_TIME_ZONE"
@@ -326,6 +301,53 @@ if [[ "'$SETUP_BOOT_MODE'" = "UEFI-32" ]] || [[ "'$SETUP_BOOT_MODE'" = "UEFI-64"
     efibootmgr --create --disk "'$SETUP_DISK_EFI'" --loader /BOOTX64.EFI --label "Arch Linux" --unicode || quit "Failed to create the EFI boot label"
 fi
 
+echo "----------------------------------------"
+SETUP_USER="'$SETUP_USER'"
+echo "Creating user \"$SETUP_USER\"..."
+useradd -mg users $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
+usermod --password $(openssl passwd -1 "'$SETUP_USER_PASSWORD'") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
+if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
+    echo "xmodmap /etc/vim_keyboard_layout/xmodmap-vim
+exec dwm" >/home/$SETUP_USER/.xinitrc || quit "Failed to create the X server init file"
+    echo "
+# Start the X server on login
+if [ -z \"\$DISPLAY\" ] && [ \"\$XDG_VTNR\" = 1 ]; then
+    startx
+fi
+" >>/home/$SETUP_USER/.bash_profile || quit "Failed to enable starting the X server upon login"
+fi
+
+echo "----------------------------------------"
+echo "Giving the user \"$SETUP_USER\" root privileges..."
+SETUP_SUDO_GROUP="'$SETUP_SUDO_GROUP'"
+echo "%$SETUP_SUDO_GROUP ALL=(ALL:ALL) ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to give sudo privileges to the \"$SETUP_SUDO_GROUP\" group"
+usermod -aG $SETUP_SUDO_GROUP $SETUP_USER || quit "Failed to give sudo privileges to user \"$SETUP_USER\""
+
+echo "----------------------------------------"
+echo "Adding custom startup scripts..."
+SETUP_VIM_KEYBOARD_LAYOUT="/etc/vim_keyboard_layout/us-vim.kmap"
+SETUP_VIM_KEYBOARD_LAYOUT_DIR="$(dirname $SETUP_VIM_KEYBOARD_LAYOUT)"
+mkdir -p $SETUP_VIM_KEYBOARD_LAYOUT_DIR || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR"
+curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/tty/us.kmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/us.kmap || quit "Failed to download the default console keyboard layout"
+curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/tty/us-vim.kmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/us-vim.kmap || quit "Failed to download the custom console keyboard layout"
+if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
+    curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/x11/xmodmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/xmodmap || quit "Failed to download the default X11 keyboard layout"
+    curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/x11/xmodmap-vim >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/xmodmap-vim || quit "Failed to download the custom X11 keyboard layout"
+fi
+mkdir -p $SETUP_DISK_ROOT_MOUNT"/etc/profile.d/" || quit "Failed to create $SETUP_DISK_ROOT_MOUNT'/etc/profile.d/'"
+echo "loadkeys $SETUP_VIM_KEYBOARD_LAYOUT; setfont ter-132b;" >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/load_tty_layout.sh || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR/load_tty_layout.sh"
+mkdir -p $SETUP_DISK_ROOT_MOUNT/etc/systemd/system || quit "Failed to create $SETUP_DISK_ROOT_MOUNT/etc/systemd/system"
+echo "[Unit]
+Description=Loads the vim keyboard layout on startup
+After=multi-user.target
+
+[Service]
+ExecStart=/bin/bash /etc/vim_keyboard_layout/load_tty_layout.sh
+
+[Install]
+WantedBy=graphical.target" >$SETUP_DISK_ROOT_MOUNT/etc/systemd/system/vim-keyboard-layout.service || quit "Failed to create $SETUP_DISK_ROOT_MOUNT/etc/systemd/system"
+systemctl enable vim-keyboard-layout || quit "Failed to enable custom keyboard layout"
+
 if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     echo "----------------------------------------"
     echo "Installing dwm..."
@@ -361,35 +383,13 @@ if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
     make CMAKE_BUILD_TYPE=RelWithDebInfo install || quit "Failed to build neovim from source"
 
     echo "----------------------------------------"
-    echo "Generating dictionary for neovim..."
-fi
+    echo "Downloading the custom neovim configuration for user \"$SETUP_USER\"..."
+    git clone --depth=1 https://github.com/cshmookler/config.nvim /home/$SETUP_USER/.config/nvim || quit "Failed to download the custom neovim configuration for user \"$SETUP_USER\""
 
-echo "----------------------------------------"
-SETUP_USER="'$SETUP_USER'"
-echo "Creating user \"$SETUP_USER\"..."
-useradd -mg users $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
-usermod --password $(openssl passwd -1 "'$SETUP_USER_PASSWORD'") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
-if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
-    echo "xmodmap /etc/vim_keyboard_layout/xmodmap-vim
-exec dwm" >/home/$SETUP_USER/.xinitrc || quit "Failed to create the X server init file"
-    echo "
-# Start the X server on login
-if [ -z \"\$DISPLAY\" ] && [ \"\$XDG_VTNR\" = 1 ]; then
-    startx
-fi
-" >>/home/$SETUP_USER/.bash_profile || quit "Failed to enable starting the X server upon login"
-fi
-
-echo "----------------------------------------"
-echo "Giving the user \"$SETUP_USER\" root privileges..."
-SETUP_SUDO_GROUP="'$SETUP_SUDO_GROUP'"
-echo "%$SETUP_SUDO_GROUP ALL=(ALL:ALL) ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to give sudo privileges to the \"$SETUP_SUDO_GROUP\" group"
-usermod -aG $SETUP_SUDO_GROUP $SETUP_USER || quit "Failed to give sudo privileges to user \"$SETUP_USER\""
-
-if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
     echo "----------------------------------------"
-    echo "Downloading custom neovim configuration for user \"$SETUP_USER\"..."
-    git clone https://github.com/cshmookler/config.nvim /home/$SETUP_USER/.config/nvim || quit "Failed to download custom neovim configuration for user \"$SETUP_USER\""
+    echo "Generating dictionary for neovim..."
+    mkdir -p /etc/xdg/nvim/ || quit "Failed to create /etc/xdg/nvim/"
+    aspell -d en dump master | aspell -l en expand >/etc/xdg/nvim/en.dict || quit "Failed generate the dictionary for neovim"
 fi
 
 echo "----------------------------------------"
