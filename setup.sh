@@ -351,30 +351,36 @@ systemctl enable vim-keyboard-layout || quit "Failed to enable custom keyboard l
 if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     echo "----------------------------------------"
     echo "Installing dwm..."
-    SETUP_DWM_SOURCE=/etc/dwm_source
+    SETUP_DWM_SOURCE=/usr/local/src/dwm
     git clone --depth=1 https://git.suckless.org/dwm $SETUP_DWM_SOURCE || quit "Failed to clone dwm"
     cd $SETUP_DWM_SOURCE || quit "Failed to change directory to $SETUP_DWM_SOURCE"
+    curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/dwm/config.def.patch || quit "Failed to download dwm patch file"
+    patch < config.def.patch || quit "Failed to apply patch for dwm"
     make clean install || quit "Failed to build dwm from source"
 
     echo "----------------------------------------"
     echo "Installing st..."
-    SETUP_ST_SOURCE=/etc/st_source
+    SETUP_ST_SOURCE=/usr/local/src/st
     git clone --depth=1 https://git.suckless.org/st $SETUP_ST_SOURCE || quit "Failed to clone st"
     cd $SETUP_ST_SOURCE || quit "Failed to change directory to $SETUP_ST_SOURCE"
+    curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/st/config.def.patch || quit "Failed to download st patch file"
+    patch < config.def.patch || quit "Failed to apply patch for st"
     make clean install || quit "Failed to build st from source"
 
     echo "----------------------------------------"
     echo "Installing dmenu..."
-    SETUP_DMENU_SOURCE=/etc/dmenu_source
+    SETUP_DMENU_SOURCE=/usr/local/src/dmenu
     git clone --depth=1 https://git.suckless.org/dmenu $SETUP_DMENU_SOURCE || quit "Failed to clone dmenu"
     cd $SETUP_DMENU_SOURCE || quit "Failed to change directory to $SETUP_DMENU_SOURCE"
+    curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/dmenu/config.def.patch || quit "Failed to download dmenu patch file"
+    patch < config.def.patch || quit "Failed to apply patch for dmenu"
     make clean install || quit "Failed to build dmenu from source"
 fi
 
 if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
     echo "----------------------------------------"
     echo "Installing neovim..."
-    SETUP_NVIM_SOURCE=/etc/nvim_source
+    SETUP_NVIM_SOURCE=/usr/local/src/nvim
     mkdir -p $SETUP_NVIM_SOURCE || quit "Failed to create neovim source directory"
     curl -L https://github.com/neovim/neovim/archive/refs/tags/nightly.tar.gz -o $SETUP_NVIM_SOURCE/nightly.tar.gz || quit "Failed to download neovim"
     cd $SETUP_NVIM_SOURCE || quit "Failed to change directory to $SETUP_NVIM_SOURCE"
