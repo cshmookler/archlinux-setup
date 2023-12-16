@@ -304,6 +304,7 @@ fi
 echo "----------------------------------------"
 SETUP_USER="'$SETUP_USER'"
 echo "Creating user \"$SETUP_USER\"..."
+groupadd $SETUP_USER || quit "Failed to create group \"$SETUP_USER\""
 useradd -mg $SETUP_USER $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
 usermod --password $(openssl passwd -1 "'$SETUP_USER_PASSWORD'") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
 if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
