@@ -410,7 +410,7 @@ fi
 
 echo "----------------------------------------"
 echo "Changing ownership of all files in /home/$SETUP_USER from root to user \"$SETUP_USER\"..."
-chmod -R $SETUP_USER:$SETUP_USER /home/$SETUP_USER || quit "Failed to change ownership of files in /home/$SETUP_USER from root to user \"$SETUP_USER\"..."
+chown -R $SETUP_USER:$SETUP_USER /home/$SETUP_USER || quit "Failed to change ownership of files in /home/$SETUP_USER from root to user \"$SETUP_USER\"..."
 
 echo "----------------------------------------"
 echo "Changing root back to installation media..."
