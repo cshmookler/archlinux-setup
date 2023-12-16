@@ -30,7 +30,7 @@ export SETUP_RESTART_TIME=5             # The timed delay before restarting once
 **3.** Download this script, make it executable, and run it as root.
 
 ```bash
-curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/setup.sh >setup.sh && chmod +x setup.sh && ./setup.sh
+curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/setup.sh && chmod +x setup.sh && ./setup.sh
 ```
 
 ## **TODO**
@@ -42,5 +42,6 @@ curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/setup.sh 
 - [X] Ensure proper functionality with UEFI boot mode.
 - [X] Install a display server (possibly Wayland but most likely Xorg).
 - [X] Install a window manager (DWM or another lightweight alternative).
+- [ ] Automatic screen locking and suspending.
 - [ ] Install essential GUI applications (firefox).
 

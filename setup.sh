@@ -46,7 +46,7 @@ if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
 fi
 SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion zsh zsh-completions man-db man-pages texinfo zip unzip curl htop lynx"
 if [[ "$SETUP_HEADLESS" = "false" ]]; then
-    SETUP_EXTRA_PACKAGES="xorg-xinit xorg $SETUP_EXTRA_PACKAGES"
+    SETUP_EXTRA_PACKAGES="xorg xorg-xinit $SETUP_EXTRA_PACKAGES"
 fi
 if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
     SETUP_EXTRA_PACKAGES="git clang python python-black cmake ninja lua-language-server bash-language-server ttf-hack-nerd noto-fonts-emoji aspell aspell-en $SETUP_EXTRA_PACKAGES"
@@ -304,7 +304,7 @@ fi
 echo "----------------------------------------"
 SETUP_USER="'$SETUP_USER'"
 echo "Creating user \"$SETUP_USER\"..."
-useradd -mg users $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
+useradd -mg $SETUP_USER $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
 usermod --password $(openssl passwd -1 "'$SETUP_USER_PASSWORD'") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
 if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     echo "xmodmap /etc/vim_keyboard_layout/xmodmap-vim
@@ -354,8 +354,8 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     SETUP_DWM_SOURCE=/usr/local/src/dwm
     git clone --depth=1 https://git.suckless.org/dwm $SETUP_DWM_SOURCE || quit "Failed to clone dwm"
     cd $SETUP_DWM_SOURCE || quit "Failed to change directory to $SETUP_DWM_SOURCE"
-    curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/dwm/config.def.patch || quit "Failed to download dwm patch file"
-    patch < config.def.patch || quit "Failed to apply patch for dwm"
+    curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/dwm/config.def.h.patch || quit "Failed to download dwm patch file"
+    patch < config.def.h.patch || quit "Failed to apply patch for dwm"
     make clean install || quit "Failed to build dwm from source"
 
     echo "----------------------------------------"
@@ -363,8 +363,8 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     SETUP_ST_SOURCE=/usr/local/src/st
     git clone --depth=1 https://git.suckless.org/st $SETUP_ST_SOURCE || quit "Failed to clone st"
     cd $SETUP_ST_SOURCE || quit "Failed to change directory to $SETUP_ST_SOURCE"
-    curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/st/config.def.patch || quit "Failed to download st patch file"
-    patch < config.def.patch || quit "Failed to apply patch for st"
+    curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/st/config.def.h.patch || quit "Failed to download st patch file"
+    patch < config.def.h.patch || quit "Failed to apply patch for st"
     make clean install || quit "Failed to build st from source"
 
     echo "----------------------------------------"
@@ -372,9 +372,18 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     SETUP_DMENU_SOURCE=/usr/local/src/dmenu
     git clone --depth=1 https://git.suckless.org/dmenu $SETUP_DMENU_SOURCE || quit "Failed to clone dmenu"
     cd $SETUP_DMENU_SOURCE || quit "Failed to change directory to $SETUP_DMENU_SOURCE"
-    curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/dmenu/config.def.patch || quit "Failed to download dmenu patch file"
-    patch < config.def.patch || quit "Failed to apply patch for dmenu"
+    curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/dmenu/config.def.h.patch || quit "Failed to download dmenu patch file"
+    patch < config.def.h.patch || quit "Failed to apply patch for dmenu"
     make clean install || quit "Failed to build dmenu from source"
+
+    echo "----------------------------------------"
+    echo "Installing slock..."
+    SETUP_SLOCK_SOURCE=/usr/local/src/slock
+    git clone --depth=1 https://git.suckless.org/slock $SETUP_SLOCK_SOURCE || quit "Failed to clone slock"
+    cd $SETUP_SLOCK_SOURCE || quit "Failed to change directory to $SETUP_SLOCK_SOURCE"
+    curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/slock/config.def.h.patch || quit "Failed to download slock patch file"
+    patch < config.def.h.patch || quit "Failed to apply patch for slock"
+    make clean install || quit "Failed to build slock from source"
 fi
 
 if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
@@ -397,6 +406,10 @@ if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
     mkdir -p /etc/xdg/nvim/ || quit "Failed to create /etc/xdg/nvim/"
     aspell -d en dump master | aspell -l en expand >/etc/xdg/nvim/en.dict || quit "Failed generate the dictionary for neovim"
 fi
+
+echo "----------------------------------------"
+echo "Changing ownership of all files in /home/$SETUP_USER from root to user \"$SETUP_USER\"..."
+chmod -R $SETUP_USER:$SETUP_USER /home/$SETUP_USER || quit "Failed to change ownership of files in /home/$SETUP_USER from root to user \"$SETUP_USER\"..."
 
 echo "----------------------------------------"
 echo "Changing root back to installation media..."
