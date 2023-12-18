@@ -392,7 +392,7 @@ from os.path import join, normpath
 
 profile = ConfigParser()
 profile.read(\"/home/$SETUP_USER/.mozilla/firefox/profiles.ini\")
-print(normpath(join(\"/home/$SETUP_USER/.mozilla/firefox/\", profile.get(\"Profile0\", \"Path\"))))") || quit "Failed to change directory to the default firefox profile")
+print(normpath(join(\"/home/$SETUP_USER/.mozilla/firefox/\", profile.get(\"Profile0\", \"Path\"))))") || quit "Failed to change directory to the default firefox profile"
     curl -O https://raw.githubusercontent.com/arkenfox/user.js/master/user.js || quit "Failed to download the custom firefox configuration for user \"$SETUP_USER\"..."
     curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/firefox/user.js.patch | patch || quit "Failed to patch firefox for user \"$SETUP_USER\"..."
 fi
