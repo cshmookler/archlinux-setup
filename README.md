@@ -12,7 +12,7 @@ A script that installs Arch Linux with my preferred configuration.
 export SETUP_DIR=~                      # Directory to switch to before doing anything else
 export SETUP_PING=1.1.1.1               # IP address or domain name for testing network connectivity
 export SETUP_DISK=                      # The disk to install arch linux on (unset by default, an unmounted disk is automatically selected)
-export SETUP_DISK_MIN_BYTES=10737418240 # The minimum number of bytes that a disk must have to be automatically selected for installation (default 10 GiB)
+export SETUP_DISK_MIN_BYTES=8589934592  # The minimum number of bytes that a disk must have to be automatically selected for installation (default 8 GiB)
 export SETUP_HEADLESS=false             # Whether to install a display server and other related software
 export SETUP_DEVELOPMENT_TOOLS=true     # Whether to install development tools
 export SETUP_EXTRA_PACKAGES=""          # Extra packages to install on the system
@@ -42,6 +42,8 @@ curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/setup.
 - [X] Ensure proper functionality with UEFI boot mode.
 - [X] Install a display server (possibly Wayland but most likely Xorg).
 - [X] Install a window manager (DWM or another lightweight alternative).
-- [ ] Automatic screen locking and suspending.
-- [ ] Install essential GUI applications (firefox).
+- [X] Automatic screen locking and suspending.
+- [X] Install essential GUI applications (firefox).
+- [ ] Patch NeoVim to optionally disable swapping.
+- [ ] Create a swap file.
 

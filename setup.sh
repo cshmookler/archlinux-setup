@@ -33,7 +33,7 @@ if [[ -z "$SETUP_PING" ]]; then
     SETUP_PING=1.1.1.1
 fi
 if [[ -z "$SETUP_DISK_MIN_BYTES" ]]; then
-    SETUP_DISK_MIN_BYTES=10737418240
+    SETUP_DISK_MIN_BYTES=8589934592
 fi
 if [[ -z "$SETUP_HEADLESS" ]]; then
     SETUP_HEADLESS=false
@@ -46,7 +46,7 @@ if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
 fi
 SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion zsh zsh-completions man-db man-pages texinfo zip unzip curl htop lynx"
 if [[ "$SETUP_HEADLESS" = "false" ]]; then
-    SETUP_EXTRA_PACKAGES="xorg xorg-xinit $SETUP_EXTRA_PACKAGES"
+    SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock firefox torbrowser-launcher $SETUP_EXTRA_PACKAGES"
 fi
 if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
     SETUP_EXTRA_PACKAGES="git clang python python-black cmake ninja lua-language-server bash-language-server ttf-hack-nerd noto-fonts-emoji aspell aspell-en $SETUP_EXTRA_PACKAGES"
@@ -309,6 +309,8 @@ useradd -mg $SETUP_USER $SETUP_USER || quit "Failed to create the user \"$SETUP_
 usermod --password $(openssl passwd -1 "'$SETUP_USER_PASSWORD'") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
 if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     echo "xmodmap /etc/vim_keyboard_layout/xmodmap-vim
+xset s 120 120 dpms 120 120 120
+nohup xss-lock slock </dev/null >/dev/null 2>&1 &
 exec dwm" >/home/$SETUP_USER/.xinitrc || quit "Failed to create the X server init file"
     echo "
 # Start the X server on login
@@ -355,8 +357,7 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     SETUP_DWM_SOURCE=/usr/local/src/dwm
     git clone --depth=1 https://git.suckless.org/dwm $SETUP_DWM_SOURCE || quit "Failed to clone dwm"
     cd $SETUP_DWM_SOURCE || quit "Failed to change directory to $SETUP_DWM_SOURCE"
-    curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/dwm/config.def.h.patch || quit "Failed to download dwm patch file"
-    patch < config.def.h.patch || quit "Failed to apply patch for dwm"
+    curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/dwm/config.def.h.patch | patch || quit "Failed to patch dwm"
     make clean install || quit "Failed to build dwm from source"
 
     echo "----------------------------------------"
@@ -364,8 +365,7 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     SETUP_ST_SOURCE=/usr/local/src/st
     git clone --depth=1 https://git.suckless.org/st $SETUP_ST_SOURCE || quit "Failed to clone st"
     cd $SETUP_ST_SOURCE || quit "Failed to change directory to $SETUP_ST_SOURCE"
-    curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/st/config.def.h.patch || quit "Failed to download st patch file"
-    patch < config.def.h.patch || quit "Failed to apply patch for st"
+    curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/st/config.def.h.patch | patch || quit "Failed to patch st"
     make clean install || quit "Failed to build st from source"
 
     echo "----------------------------------------"
@@ -373,8 +373,7 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     SETUP_DMENU_SOURCE=/usr/local/src/dmenu
     git clone --depth=1 https://git.suckless.org/dmenu $SETUP_DMENU_SOURCE || quit "Failed to clone dmenu"
     cd $SETUP_DMENU_SOURCE || quit "Failed to change directory to $SETUP_DMENU_SOURCE"
-    curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/dmenu/config.def.h.patch || quit "Failed to download dmenu patch file"
-    patch < config.def.h.patch || quit "Failed to apply patch for dmenu"
+    curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/dmenu/config.def.h.patch | patch || quit "Failed to patch dmenu"
     make clean install || quit "Failed to build dmenu from source"
 
     echo "----------------------------------------"
@@ -382,9 +381,20 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     SETUP_SLOCK_SOURCE=/usr/local/src/slock
     git clone --depth=1 https://git.suckless.org/slock $SETUP_SLOCK_SOURCE || quit "Failed to clone slock"
     cd $SETUP_SLOCK_SOURCE || quit "Failed to change directory to $SETUP_SLOCK_SOURCE"
-    curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/slock/config.def.h.patch || quit "Failed to download slock patch file"
-    patch < config.def.h.patch || quit "Failed to apply patch for slock"
+    curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/slock/config.def.h.patch | patch || quit "Failed to patch slock"
     make clean install || quit "Failed to build slock from source"
+
+    echo "----------------------------------------"
+    echo "Installing the custom firefox configuration for user \"$SETUP_USER\"..."
+    cd $(python -c "
+from configparser import ConfigParser
+from os.path import join, normpath
+
+profile = ConfigParser()
+profile.read(\"/home/$SETUP_USER/.mozilla/firefox/profiles.ini\")
+print(normpath(join(\"/home/$SETUP_USER/.mozilla/firefox/\", profile.get(\"Profile0\", \"Path\"))))") || quit "Failed to change directory to the default firefox profile")
+    curl -O https://raw.githubusercontent.com/arkenfox/user.js/master/user.js || quit "Failed to download the custom firefox configuration for user \"$SETUP_USER\"..."
+    curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/firefox/user.js.patch | patch || quit "Failed to patch firefox for user \"$SETUP_USER\"..."
 fi
 
 if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
