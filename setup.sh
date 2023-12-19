@@ -46,10 +46,10 @@ if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
 fi
 SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion zsh zsh-completions man-db man-pages texinfo zip unzip curl git python htop lynx"
 if [[ "$SETUP_HEADLESS" = "false" ]]; then
-    SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock torbrowser-launcher gtkmm3 alsa-lib $SETUP_EXTRA_PACKAGES"
+    SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock ttf-hack-nerd noto-fonts-emoji torbrowser-launcher gtkmm3 alsa-lib $SETUP_EXTRA_PACKAGES"
 fi
 if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
-    SETUP_EXTRA_PACKAGES="clang python-black cmake ninja lua-language-server bash-language-server ttf-hack-nerd noto-fonts-emoji aspell aspell-en $SETUP_EXTRA_PACKAGES"
+    SETUP_EXTRA_PACKAGES="clang python-black cmake ninja lua-language-server bash-language-server aspell aspell-en $SETUP_EXTRA_PACKAGES"
 fi
 if [[ -z "$SETUP_TIME_ZONE" ]]; then
     SETUP_TIME_ZONE="America/Denver"
@@ -383,6 +383,13 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     cd $SETUP_SLOCK_SOURCE || quit "Failed to change directory to $SETUP_SLOCK_SOURCE"
     curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/slock/config.def.h.patch | patch || quit "Failed to patch slock"
     make clean install || quit "Failed to build slock from source"
+
+    echo "----------------------------------------"
+    echo "Configuring the Tor Browser for user \"$SETUP_USER\"..."
+    mkdir -p /home/$SETUP_USER/.local/share/torbrowser/tbb/x86_64/tor-browser/Browser/TorBrowser/Data/Browser/profile.default/ || quit "Failed to create the Tor Browser profile directory for user \"$SETUP_USER\""
+    echo "user_pref(\"extensions.torlauncher.start_tor\", false);
+user_pref(\"network.dns.disabled\", false);
+user_pref(\"network.proxy.socks\", \" \");" >/home/$SETUP_USER/.local/share/torbrowser/tbb/x86_64/tor-browser/Browser/TorBrowser/Data/Browser/profile.default/user.js || quit "Failed to configure the default Tor Browser profile for user \"$SETUP_USER\""
 fi
 
 if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
