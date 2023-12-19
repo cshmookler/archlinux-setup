@@ -44,12 +44,12 @@ fi
 if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
     SETUP_EXTRA_PACKAGES=""
 fi
-SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion zsh zsh-completions man-db man-pages texinfo zip unzip curl htop lynx"
+SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion zsh zsh-completions man-db man-pages texinfo zip unzip curl git python htop lynx"
 if [[ "$SETUP_HEADLESS" = "false" ]]; then
-    SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock firefox torbrowser-launcher $SETUP_EXTRA_PACKAGES"
+    SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock torbrowser-launcher gtkmm3 alsa-lib $SETUP_EXTRA_PACKAGES"
 fi
 if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
-    SETUP_EXTRA_PACKAGES="git clang python python-black cmake ninja lua-language-server bash-language-server ttf-hack-nerd noto-fonts-emoji aspell aspell-en $SETUP_EXTRA_PACKAGES"
+    SETUP_EXTRA_PACKAGES="clang python-black cmake ninja lua-language-server bash-language-server ttf-hack-nerd noto-fonts-emoji aspell aspell-en $SETUP_EXTRA_PACKAGES"
 fi
 if [[ -z "$SETUP_TIME_ZONE" ]]; then
     SETUP_TIME_ZONE="America/Denver"
@@ -383,18 +383,6 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     cd $SETUP_SLOCK_SOURCE || quit "Failed to change directory to $SETUP_SLOCK_SOURCE"
     curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/slock/config.def.h.patch | patch || quit "Failed to patch slock"
     make clean install || quit "Failed to build slock from source"
-
-    echo "----------------------------------------"
-    echo "Installing the custom firefox configuration for user \"$SETUP_USER\"..."
-    cd $(python -c "
-from configparser import ConfigParser
-from os.path import join, normpath
-
-profile = ConfigParser()
-profile.read(\"/home/$SETUP_USER/.mozilla/firefox/profiles.ini\")
-print(normpath(join(\"/home/$SETUP_USER/.mozilla/firefox/\", profile.get(\"Profile0\", \"Path\"))))") || quit "Failed to change directory to the default firefox profile"
-    curl -O https://raw.githubusercontent.com/arkenfox/user.js/master/user.js || quit "Failed to download the custom firefox configuration for user \"$SETUP_USER\"..."
-    curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/firefox/user.js.patch | patch || quit "Failed to patch firefox for user \"$SETUP_USER\"..."
 fi
 
 if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
