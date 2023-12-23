@@ -44,9 +44,9 @@ fi
 if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
     SETUP_EXTRA_PACKAGES=""
 fi
-SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion zsh zsh-completions man-db man-pages texinfo zip unzip curl git python htop lynx"
+SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion zsh zsh-completions man-db man-pages texinfo zip unzip curl git python htop lynx ufw transmission-cli openssh"
 if [[ "$SETUP_HEADLESS" = "false" ]]; then
-    SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock physlock ttf-hack-nerd noto-fonts-emoji torbrowser-launcher gtkmm3 alsa-lib $SETUP_EXTRA_PACKAGES"
+    SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock physlock ttf-hack-nerd noto-fonts-emoji torbrowser-launcher gtkmm3 alsa-lib vlc libreoffice-fresh xreader $SETUP_EXTRA_PACKAGES"
 fi
 if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
     SETUP_EXTRA_PACKAGES="clang python-black cmake ninja lua-language-server bash-language-server aspell aspell-en $SETUP_EXTRA_PACKAGES"
@@ -68,6 +68,9 @@ if [[ -z "$SETUP_USER_PASSWORD" ]]; then
 fi
 if [[ -z "$SETUP_SUDO_GROUP" ]]; then
     SETUP_SUDO_GROUP="wheel"
+fi
+if [[ -z "$SETUP_SSH_PORT" ]]; then
+    SETUP_SSH_PORT=22
 fi
 if [[ -z "$SETUP_RESTART_TIME" ]]; then
     SETUP_RESTART_TIME=5
@@ -353,6 +356,22 @@ ExecStart=/bin/bash /etc/vim_keyboard_layout/load_tty_layout.sh
 WantedBy=graphical.target" >$SETUP_DISK_ROOT_MOUNT/etc/systemd/system/vim-keyboard-layout.service || quit "Failed to create $SETUP_DISK_ROOT_MOUNT/etc/systemd/system"
 systemctl enable vim-keyboard-layout || quit "Failed to enable custom keyboard layout"
 
+echo "----------------------------------------"
+echo "Securing ssh..."
+SETUP_SSH_CONFIG=/etc/ssh/sshd_config.d/sshd_config
+mkdir -p $(dirname $SETUP_SSH_CONFIG) || quit "Failed to create directory $SETUP_SSH_CONFIG"
+# By default, users within the sudo group can remotely login with ssh
+echo "
+AllowGroups $SETUP_SUDO_GROUP
+Port $SETUP_SSH_PORT
+Banner /etc/issue" >$SETUP_SSH_CONFIG || quit "Failed to create the ssh configuration file $SETUP_SSH_CONFIG"
+systemctl enable sshd.service || quit "Failed to enable the ssh daemon"
+
+echo "----------------------------------------"
+echo "Enabling the firewall..."
+ufw enable || quit "Failed to enable the firewall"
+ufw allow $SETUP_SSH_PORT || quit "Failed to allow connection through ssh"
+
 if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     echo "----------------------------------------"
     echo "Installing dwm..."
@@ -396,19 +415,24 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     echo "----------------------------------------"
     echo "Disabling VT switching and zapping within the X server..."
     Xorg :0 -configure || quit "Failed to generate configuration for the X server"
-    mv /root/xorg.conf.new /etc/X11/xorg.conf || quit "Failed to move configuration for the X server to /etc/X11/"
+    SETUP_XORG_CONF=/etc/X11/xorg.conf.d/xorg.conf
+    mkdir -p $(dirname $SETUP_XORG_CONF) || quit "Failed to create directory $SETUP_XORG_CONF"
+    mv /root/xorg.conf.new $SETUP_XORG_CONF || quit "Failed to move configuration for the X server to /etc/X11/"
     echo "Section \"ServerFlags\"
         Option \"DontVTSwitch\" \"True\"
         Option \"DontZap\" \"True\"
 EndSection
-" >>/etc/X11/xorg.conf || quit "Failed to patch the X server configuration"
+" >>$SETUP_XORG_CONF || quit "Failed to patch the X server configuration"
 
     echo "----------------------------------------"
     echo "Configuring the Tor Browser for user \"$SETUP_USER\"..."
     mkdir -p /home/$SETUP_USER/.local/share/torbrowser/tbb/x86_64/tor-browser/Browser/TorBrowser/Data/Browser/profile.default/ || quit "Failed to create the Tor Browser profile directory for user \"$SETUP_USER\""
     echo "user_pref(\"extensions.torlauncher.start_tor\", false);
 user_pref(\"network.dns.disabled\", false);
-user_pref(\"network.proxy.socks\", \" \");" >/home/$SETUP_USER/.local/share/torbrowser/tbb/x86_64/tor-browser/Browser/TorBrowser/Data/Browser/profile.default/user.js || quit "Failed to configure the default Tor Browser profile for user \"$SETUP_USER\""
+user_pref(\"network.proxy.socks\", \" \");
+user_pref(\"browser.startup.homepage\", \"about:blank\");
+user_pref(\"browser.urlbar.suggest.bookmark\", false);
+user_pref(\"browser.urlbar.suggest.calculator\", true);" >/home/$SETUP_USER/.local/share/torbrowser/tbb/x86_64/tor-browser/Browser/TorBrowser/Data/Browser/profile.default/user.js || quit "Failed to configure the default Tor Browser profile for user \"$SETUP_USER\""
 fi
 
 if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
