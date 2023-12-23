@@ -396,6 +396,7 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     echo "----------------------------------------"
     echo "Disabling VT switching and zapping within the X server..."
     Xorg :0 -configure || quit "Failed to generate configuration for the X server"
+    mkdir -p /etc/X11/ || quit "Failed to create the X server configuration directory"
     mv /root/xorg.new.conf /etc/X11/xorg.conf || quit "Failed to move configuration for the X server to /etc/X11/"
     echo "Section \"ServerFlags\"
         Option \"DontVTSwitch\" \"True\"
