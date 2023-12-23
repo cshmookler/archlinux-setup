@@ -46,7 +46,7 @@ if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
 fi
 SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion zsh zsh-completions man-db man-pages texinfo zip unzip curl git python htop lynx"
 if [[ "$SETUP_HEADLESS" = "false" ]]; then
-    SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock ttf-hack-nerd noto-fonts-emoji torbrowser-launcher gtkmm3 alsa-lib $SETUP_EXTRA_PACKAGES"
+    SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock physlock ttf-hack-nerd noto-fonts-emoji torbrowser-launcher gtkmm3 alsa-lib $SETUP_EXTRA_PACKAGES"
 fi
 if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
     SETUP_EXTRA_PACKAGES="clang python-black cmake ninja lua-language-server bash-language-server aspell aspell-en $SETUP_EXTRA_PACKAGES"
@@ -250,8 +250,8 @@ echo "Enabling automatic network configuration..."
 systemctl enable NetworkManager || quit "Failed to enable networking"
 
 echo "----------------------------------------"
-SETUP_ROOT_PASSWORD="'$SETUP_ROOT_PASSWORD'"
 echo "Setting root password..."
+SETUP_ROOT_PASSWORD="'$SETUP_ROOT_PASSWORD'"
 usermod --password $(openssl passwd -1 $SETUP_ROOT_PASSWORD) root || quit "Failed to set the root password"
 
 echo "----------------------------------------"
@@ -311,7 +311,9 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     echo "xmodmap /etc/vim_keyboard_layout/xmodmap-vim
 xset s 120 120 dpms 120 120 120
 nohup xss-lock slock </dev/null >/dev/null 2>&1 &
-exec dwm" >/home/$SETUP_USER/.xinitrc || quit "Failed to create the X server init file"
+/usr/local/src/dwm-bar/dwm_bar.sh &
+dwm
+physlock -p \"This console is locked by $'"USER"'\"" >/home/$SETUP_USER/.xinitrc || quit "Failed to create the X server init file"
     echo "
 # Start the X server on login
 if [ -z \"\$DISPLAY\" ] && [ \"\$XDG_VTNR\" = 1 ]; then
@@ -338,7 +340,7 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/x11/xmodmap-vim >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/xmodmap-vim || quit "Failed to download the custom X11 keyboard layout"
 fi
 mkdir -p $SETUP_DISK_ROOT_MOUNT"/etc/profile.d/" || quit "Failed to create $SETUP_DISK_ROOT_MOUNT'/etc/profile.d/'"
-echo "loadkeys $SETUP_VIM_KEYBOARD_LAYOUT; setfont ter-132b;" >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/load_tty_layout.sh || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR/load_tty_layout.sh"
+echo "loadkeys $SETUP_VIM_KEYBOARD_LAYOUT" >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/load_tty_layout.sh || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR/load_tty_layout.sh"
 mkdir -p $SETUP_DISK_ROOT_MOUNT/etc/systemd/system || quit "Failed to create $SETUP_DISK_ROOT_MOUNT/etc/systemd/system"
 echo "[Unit]
 Description=Loads the vim keyboard layout on startup
@@ -355,7 +357,7 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     echo "----------------------------------------"
     echo "Installing dwm..."
     SETUP_DWM_SOURCE=/usr/local/src/dwm
-    git clone --depth=1 https://git.suckless.org/dwm $SETUP_DWM_SOURCE || quit "Failed to clone dwm"
+    git clone --depth=1 git://git.suckless.org/dwm $SETUP_DWM_SOURCE || quit "Failed to clone dwm"
     cd $SETUP_DWM_SOURCE || quit "Failed to change directory to $SETUP_DWM_SOURCE"
     curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/dwm/config.def.h.patch | patch || quit "Failed to patch dwm"
     make clean install || quit "Failed to build dwm from source"
@@ -363,15 +365,22 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     echo "----------------------------------------"
     echo "Installing st..."
     SETUP_ST_SOURCE=/usr/local/src/st
-    git clone --depth=1 https://git.suckless.org/st $SETUP_ST_SOURCE || quit "Failed to clone st"
+    git clone --depth=1 git://git.suckless.org/st $SETUP_ST_SOURCE || quit "Failed to clone st"
     cd $SETUP_ST_SOURCE || quit "Failed to change directory to $SETUP_ST_SOURCE"
     curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/st/config.def.h.patch | patch || quit "Failed to patch st"
     make clean install || quit "Failed to build st from source"
 
     echo "----------------------------------------"
+    echo "Installing a status bar for dwm..."
+    SETUP_STATUS_SOURCE=/usr/local/src/dwm-bar
+    git clone --depth=1 https://github.com/joestandring/dwm-bar $SETUP_STATUS_SOURCE || quit "Failed to clone dwm-bar"
+    cd $SETUP_STATUS_SOURCE || quit "Failed to change directory to $SETUP_STATUS_SOURCE"
+    curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/dwm-bar/dwm_bar.sh.patch | patch || quit "Failed to patch dwm-bar"
+
+    echo "----------------------------------------"
     echo "Installing dmenu..."
     SETUP_DMENU_SOURCE=/usr/local/src/dmenu
-    git clone --depth=1 https://git.suckless.org/dmenu $SETUP_DMENU_SOURCE || quit "Failed to clone dmenu"
+    git clone --depth=1 git://git.suckless.org/dmenu $SETUP_DMENU_SOURCE || quit "Failed to clone dmenu"
     cd $SETUP_DMENU_SOURCE || quit "Failed to change directory to $SETUP_DMENU_SOURCE"
     curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/dmenu/config.def.h.patch | patch || quit "Failed to patch dmenu"
     make clean install || quit "Failed to build dmenu from source"
@@ -379,10 +388,20 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     echo "----------------------------------------"
     echo "Installing slock..."
     SETUP_SLOCK_SOURCE=/usr/local/src/slock
-    git clone --depth=1 https://git.suckless.org/slock $SETUP_SLOCK_SOURCE || quit "Failed to clone slock"
+    git clone --depth=1 git://git.suckless.org/slock $SETUP_SLOCK_SOURCE || quit "Failed to clone slock"
     cd $SETUP_SLOCK_SOURCE || quit "Failed to change directory to $SETUP_SLOCK_SOURCE"
     curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/slock/config.def.h.patch | patch || quit "Failed to patch slock"
     make clean install || quit "Failed to build slock from source"
+
+    echo "----------------------------------------"
+    echo "Disabling VT switching and zapping within the X server..."
+    Xorg :0 -configure || quit "Failed to generate configuration for the X server"
+    mv /root/xorg.new.conf /etc/X11/xorg.conf || quit "Failed to move configuration for the X server to /etc/X11/"
+    echo "Section \"ServerFlags\"
+        Option \"DontVTSwitch\" \"True\"
+        Option \"DontZap\" \"True\"
+EndSection
+" >>/etc/X11/xorg.conf || quit "Failed to patch the X server configuration"
 
     echo "----------------------------------------"
     echo "Configuring the Tor Browser for user \"$SETUP_USER\"..."
@@ -405,7 +424,7 @@ if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
 
     echo "----------------------------------------"
     echo "Downloading the custom neovim configuration for user \"$SETUP_USER\"..."
-    git clone --depth=1 https://github.com/cshmookler/config.nvim /home/$SETUP_USER/.config/nvim || quit "Failed to download the custom neovim configuration for user \"$SETUP_USER\""
+    git clone --depth=1 git://github.com/cshmookler/config.nvim /home/$SETUP_USER/.config/nvim || quit "Failed to download the custom neovim configuration for user \"$SETUP_USER\""
 
     echo "----------------------------------------"
     echo "Generating dictionary for neovim..."
