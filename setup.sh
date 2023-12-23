@@ -128,6 +128,7 @@ echo "Installing Arch Linux with the current configuration:
          non-root user -> $SETUP_USER
 non-root user password -> $SETUP_USER_PASSWORD
             sudo group -> $SETUP_SUDO_GROUP
+              ssh port -> $SETUP_SSH_PORT
 "
 timer 5 "Beginning installation"
 
@@ -369,6 +370,7 @@ systemctl enable sshd.service || quit "Failed to enable the ssh daemon"
 
 echo "----------------------------------------"
 echo "Enabling the firewall..."
+systemctl enable ufw.service || quit "Failed to enable the ufw daemon"
 ufw enable || quit "Failed to enable the firewall"
 ufw allow $SETUP_SSH_PORT || quit "Failed to allow connection through ssh"
 
