@@ -424,7 +424,7 @@ if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
 
     echo "----------------------------------------"
     echo "Downloading the custom neovim configuration for user \"$SETUP_USER\"..."
-    git clone --depth=1 git://github.com/cshmookler/config.nvim /home/$SETUP_USER/.config/nvim || quit "Failed to download the custom neovim configuration for user \"$SETUP_USER\""
+    git clone --depth=1 https://github.com/cshmookler/config.nvim /home/$SETUP_USER/.config/nvim || quit "Failed to download the custom neovim configuration for user \"$SETUP_USER\""
 
     echo "----------------------------------------"
     echo "Generating dictionary for neovim..."
