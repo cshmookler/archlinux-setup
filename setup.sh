@@ -343,9 +343,9 @@ if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/x11/xmodmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/xmodmap || quit "Failed to download the default X11 keyboard layout"
     curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/x11/xmodmap-vim >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/xmodmap-vim || quit "Failed to download the custom X11 keyboard layout"
 fi
-mkdir -p $SETUP_DISK_ROOT_MOUNT"/etc/profile.d/" || quit "Failed to create $SETUP_DISK_ROOT_MOUNT'/etc/profile.d/'"
+mkdir -p "/etc/profile.d/" || quit "Failed to create $SETUP_DISK_ROOT_MOUNT'/etc/profile.d/'"
 echo "loadkeys $SETUP_VIM_KEYBOARD_LAYOUT" >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/load_tty_layout.sh || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR/load_tty_layout.sh"
-mkdir -p $SETUP_DISK_ROOT_MOUNT/etc/systemd/system || quit "Failed to create $SETUP_DISK_ROOT_MOUNT/etc/systemd/system"
+mkdir -p /etc/systemd/system || quit "Failed to create /etc/systemd/system"
 echo "[Unit]
 Description=Loads the vim keyboard layout on startup
 After=multi-user.target
@@ -354,8 +354,8 @@ After=multi-user.target
 ExecStart=/bin/bash /etc/vim_keyboard_layout/load_tty_layout.sh
 
 [Install]
-WantedBy=graphical.target" >$SETUP_DISK_ROOT_MOUNT/etc/systemd/system/vim-keyboard-layout.service || quit "Failed to create $SETUP_DISK_ROOT_MOUNT/etc/systemd/system"
-systemctl enable vim-keyboard-layout || quit "Failed to enable custom keyboard layout"
+WantedBy=graphical.target" >/etc/systemd/system/vim-keyboard-layout.service || quit "Failed to create /etc/systemd/system/vim-keyboard-layout.service"
+systemctl enable vim-keyboard-layout.service || quit "Failed to enable custom keyboard layout"
 
 echo "----------------------------------------"
 echo "Securing ssh..."
@@ -371,8 +371,26 @@ systemctl enable sshd.service || quit "Failed to enable the ssh daemon"
 echo "----------------------------------------"
 echo "Enabling the firewall..."
 systemctl enable ufw.service || quit "Failed to enable the ufw daemon"
-ufw enable || quit "Failed to enable the firewall"
-ufw allow $SETUP_SSH_PORT || quit "Failed to allow connection through ssh"
+
+echo "----------------------------------------"
+echo "Adding the post-installation script..."
+SETUP_POST_INSTALL_SCRIPT=/etc/post_install.sh
+echo "ufw enable
+ufw allow $SETUP_SSH_PORT
+systemctl disable post-install.service
+rm /etc/systemd/system/post-install.service
+rm $SETUP_POST_INSTALL_SCRIPT" >$SETUP_POST_INSTALL_SCRIPT || quit "Failed to create the post-installation script"
+chmod +x $SETUP_POST_INSTALL_SCRIPT || quit "Failed to make the post-installation script executable"
+echo "[Unit]
+Description=Executes post-installation operations that can only be completed after booting into the installed operating system
+After=ufw.service
+
+[Service]
+ExecStart=/bin/bash $SETUP_POST_INSTALL_SCRIPT
+
+[Install]
+WantedBy=graphical.target" >/etc/systemd/system/post-install.service || quit "Failed to create /etc/systemd/system/post-install.service"
+systemctl enable post-install.service || quit "Failed to enable the post installation script"
 
 if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     echo "----------------------------------------"
