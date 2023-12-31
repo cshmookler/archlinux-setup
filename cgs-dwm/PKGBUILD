@@ -1,0 +1,35 @@
+pkgname="cgs-dwm"
+pkgver="1.0.0"
+pkgrel=1
+pkgdesc="Patched dynamic window manager for X"
+arch=("any")
+depends=("xorg")
+optdepends=("cgs-st")
+conflicts=("$pkgname")
+source=("git+https://git.suckless.org/dwm")
+md5sums=("SKIP")
+
+prepare() {
+    cp config.def.h.patch dwm
+    cd dwm
+    patch <config.def.h.patch
+}
+
+pkgver() {
+    cd dwm
+    git log -1 --date=format:"%Y%m%d" --format="%ad"
+}
+
+build() {
+    cd dwm
+    make DESTDIR="$pkgdir/"
+}
+
+check() {
+    dwm/dwm -v
+}
+
+package() {
+    cd dwm
+    make DESTDIR="$pkgdir/" install
+}

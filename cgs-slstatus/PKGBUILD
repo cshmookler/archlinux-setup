@@ -1,0 +1,33 @@
+pkgname="cgs-slstatus"
+pkgver="1.0.0"
+pkgrel=1
+pkgdesc="Patched status monitor for window managers using WM_NAME of stdin to fill the status bar"
+arch=("any")
+conflicts=("$pkgname")
+source=("git+https://git.suckless.org/slstatus")
+md5sums=("SKIP")
+
+prepare() {
+    cp config.def.h.patch slstatus
+    cd slstatus
+    patch <config.def.h.patch
+}
+
+pkgver() {
+    cd slstatus
+    git log -1 --date=format:"%Y%m%d" --format="%ad"
+}
+
+build() {
+    cd slstatus
+    make DESTDIR="$pkgdir/"
+}
+
+check() {
+    slstatus/slstatus -v
+}
+
+package() {
+    cd slstatus
+    make DESTDIR="$pkgdir/" install
+}

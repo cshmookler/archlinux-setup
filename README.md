@@ -45,6 +45,8 @@ curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/setup.
 - [X] Install a window manager (DWM or another lightweight alternative).
 - [X] Automatic screen locking and suspending.
 - [X] Install essential GUI applications (firefox).
-- [ ] Patch NeoVim to optionally disable swapping.
-- [ ] Create a swap file.
-
+- [ ] Replace dwm-bar with cgs-status.
+- [ ] Separate each component into its own package.
+- [ ] Allow optional components of the installation to fail without stopping the installation.
+- [ ] Replace lynx with surf and tabbed.
+- [ ] Plug OpenVPN dns leak.

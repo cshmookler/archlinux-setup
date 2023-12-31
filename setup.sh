@@ -24,56 +24,60 @@ timer() {
     done
 }
 
+preprocess() {
+    bash -c "bash -c 'echo \"$(cat $1)\"'"
+}
+
 echo "----------------------------------------"
 echo "Configuring options..."
 if [[ -z "$SETUP_DIR" ]]; then
-    SETUP_DIR=~
+    export SETUP_DIR=~
 fi
 if [[ -z "$SETUP_PING" ]]; then
-    SETUP_PING=1.1.1.1
+    export SETUP_PING=1.1.1.1
 fi
 if [[ -z "$SETUP_DISK_MIN_BYTES" ]]; then
-    SETUP_DISK_MIN_BYTES=8589934592
+    export SETUP_DISK_MIN_BYTES=8589934592
 fi
 if [[ -z "$SETUP_HEADLESS" ]]; then
-    SETUP_HEADLESS=false
+    export SETUP_HEADLESS=false
 fi
 if [[ -z "$SETUP_DEVELOPMENT_TOOLS" ]]; then
-    SETUP_DEVELOPMENT_TOOLS=true
+    export SETUP_DEVELOPMENT_TOOLS=true
 fi
 if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
-    SETUP_EXTRA_PACKAGES=""
+    export SETUP_EXTRA_PACKAGES=""
 fi
-SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion zsh zsh-completions man-db man-pages texinfo zip unzip curl git python htop lynx ufw transmission-cli openssh"
+export SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion zsh zsh-completions man-db man-pages texinfo zip unzip curl git python htop lynx ufw transmission-cli openssh openvpn arch-wiki-lite"
 if [[ "$SETUP_HEADLESS" = "false" ]]; then
-    SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock physlock ttf-hack-nerd noto-fonts-emoji torbrowser-launcher gtkmm3 alsa-lib vlc libreoffice-fresh xreader $SETUP_EXTRA_PACKAGES"
+    export SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock physlock ttf-hack-nerd noto-fonts-emoji torbrowser-launcher gtkmm3 alsa-lib vlc pulseaudio libreoffice-fresh xreader $SETUP_EXTRA_PACKAGES"
 fi
 if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
-    SETUP_EXTRA_PACKAGES="clang python-black cmake ninja lua-language-server bash-language-server aspell aspell-en $SETUP_EXTRA_PACKAGES"
+    export SETUP_EXTRA_PACKAGES="clang python-black cmake ninja lua-language-server bash-language-server aspell aspell-en $SETUP_EXTRA_PACKAGES"
 fi
 if [[ -z "$SETUP_TIME_ZONE" ]]; then
-    SETUP_TIME_ZONE="America/Denver"
+    export SETUP_TIME_ZONE="America/Denver"
 fi
 if [[ -z "$SETUP_HOSTNAME" ]]; then
-    SETUP_HOSTNAME="arch"
+    export SETUP_HOSTNAME="arch"
 fi
 if [[ -z "$SETUP_ROOT_PASSWORD" ]]; then
-    SETUP_ROOT_PASSWORD="arch"
+    export SETUP_ROOT_PASSWORD="arch"
 fi
 if [[ -z "$SETUP_USER" ]]; then
-    SETUP_USER="main"
+    export SETUP_USER="main"
 fi
 if [[ -z "$SETUP_USER_PASSWORD" ]]; then
-    SETUP_USER_PASSWORD="main"
+    export SETUP_USER_PASSWORD="main"
 fi
 if [[ -z "$SETUP_SUDO_GROUP" ]]; then
-    SETUP_SUDO_GROUP="wheel"
+    export SETUP_SUDO_GROUP="wheel"
 fi
 if [[ -z "$SETUP_SSH_PORT" ]]; then
-    SETUP_SSH_PORT=22
+    export SETUP_SSH_PORT=22
 fi
 if [[ -z "$SETUP_RESTART_TIME" ]]; then
-    SETUP_RESTART_TIME=5
+    export SETUP_RESTART_TIME=5
 fi
 
 echo "----------------------------------------"
@@ -136,7 +140,7 @@ echo "----------------------------------------"
 echo "Partitioning, formatting, and mounting $SETUP_DISK"
 if ! cat /sys/firmware/efi/fw_platform_size >>null 2>>null; then
     echo "This system is BIOS bootable only"
-    SETUP_BOOT_MODE=BIOS
+    export SETUP_BOOT_MODE=BIOS
     (
         echo o     # new MBR partition table
         echo n     # new boot partition (required by limine)
@@ -152,16 +156,16 @@ if ! cat /sys/firmware/efi/fw_platform_size >>null 2>>null; then
         echo       # reserve the rest of the disk
         echo w     # write changes
     ) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
-    SETUP_DISK_BOOT=$SETUP_DISK"1"
-    SETUP_DISK_ROOT=$SETUP_DISK"2"
+    export SETUP_DISK_BOOT=$SETUP_DISK"1"
+    export SETUP_DISK_ROOT=$SETUP_DISK"2"
     echo "Created boot partition: $SETUP_DISK_BOOT"
     echo "Created root partition: $SETUP_DISK_ROOT"
     mkfs.fat -F 32 $SETUP_DISK_BOOT || quit "Failed to format the boot partition: $SETUP_DISK_BOOT"
     mkfs.ext4 $SETUP_DISK_ROOT || quit "Failed to format the root partition: $SETUP_DISK_ROOT"
     echo "Formatted boot partition with FAT32"
     echo "Formatted root partition with EXT4"
-    SETUP_DISK_ROOT_MOUNT=/mnt
-    SETUP_DISK_BOOT_MOUNT=/mnt/boot
+    export SETUP_DISK_ROOT_MOUNT=/mnt
+    export SETUP_DISK_BOOT_MOUNT=/mnt/boot
     # The root partition must be mounted first because the boot partition is mounted within the root filesystem
     mount --mkdir $SETUP_DISK_ROOT $SETUP_DISK_ROOT_MOUNT || quit "Failed to mount $SETUP_DISK_ROOT -> $SETUP_DISK_ROOT_MOUNT"
     mount --mkdir $SETUP_DISK_BOOT $SETUP_DISK_BOOT_MOUNT || quit "Failed to mount $SETUP_DISK_BOOT -> $SETUP_DISK_BOOT_MOUNT"
@@ -169,10 +173,10 @@ if ! cat /sys/firmware/efi/fw_platform_size >>null 2>>null; then
     echo "Mounted boot partition to $SETUP_DISK_BOOT_MOUNT"
 elif cat /sys/firmware/efi/fw_platform_size | grep -q 32; then
     echo "This system is 32-bit UEFI bootable"
-    SETUP_BOOT_MODE=UEFI-32
+    export SETUP_BOOT_MODE=UEFI-32
 elif cat /sys/firmware/efi/fw_platform_size | grep -q 64; then
     echo "This system is 64-bit UEFI bootable"
-    SETUP_BOOT_MODE=UEFI-64
+    export SETUP_BOOT_MODE=UEFI-64
 else
     quit "Unable to identify available boot modes. Refer to the Arch Linux installation guide for help"
 fi
@@ -192,16 +196,16 @@ if [[ "$SETUP_BOOT_MODE" = "UEFI-32" ]] || [[ "$SETUP_BOOT_MODE" = "UEFI-64" ]];
         echo       # reserve the rest of the disk
         echo w     # write changes
     ) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
-    SETUP_DISK_EFI=$SETUP_DISK"1"
-    SETUP_DISK_ROOT=$SETUP_DISK"2"
+    export SETUP_DISK_EFI=$SETUP_DISK"1"
+    export SETUP_DISK_ROOT=$SETUP_DISK"2"
     echo "Created EFI partition: $SETUP_DISK_EFI"
     echo "Created root partition: $SETUP_DISK_ROOT"
     mkfs.fat -F 32 $SETUP_DISK_EFI || quit "Failed to format the EFI partition: $SETUP_DISK_EFI"
     mkfs.ext4 $SETUP_DISK_ROOT || quit "Failed to format the root partition: $SETUP_DISK_ROOT"
     echo "Formatted EFI partition with FAT32"
     echo "Formatted root partition with EXT4"
-    SETUP_DISK_ROOT_MOUNT=/mnt
-    SETUP_DISK_EFI_MOUNT=/mnt/boot
+    export SETUP_DISK_ROOT_MOUNT=/mnt
+    export SETUP_DISK_EFI_MOUNT=/mnt/boot
     mount --mkdir $SETUP_DISK_ROOT $SETUP_DISK_ROOT_MOUNT || quit "Failed to mount $SETUP_DISK_ROOT -> $SETUP_DISK_ROOT_MOUNT"
     mount --mkdir $SETUP_DISK_EFI $SETUP_DISK_EFI_MOUNT || quit "Failed to mount $SETUP_DISK_EFI -> $SETUP_DISK_EFI_MOUNT"
     echo "Mounted root partition to $SETUP_DISK_ROOT_MOUNT"
@@ -259,65 +263,33 @@ SETUP_ROOT_PASSWORD="'$SETUP_ROOT_PASSWORD'"
 usermod --password $(openssl passwd -1 $SETUP_ROOT_PASSWORD) root || quit "Failed to set the root password"
 
 echo "----------------------------------------"
-SETUP_BOOT_LOADER_DIR=/boot/limine
-echo "Moving boot loader to $SETUP_BOOT_LOADER_DIR"
-mkdir -p $SETUP_BOOT_LOADER_DIR || quit "Failed to create boot loader subdirectory"
-mkdir -p /etc/pacman.d/hooks || quit "Failed to create the pacman hooks subdirectory"
-if [[ "'$SETUP_BOOT_MODE'" = "UEFI-32" ]] || [[ "'$SETUP_BOOT_MODE'" = "UEFI-64" ]]; then
-    echo "[Trigger]
-Operation = Install
-Operation = Upgrade
-Type = Package
-Target = limine
-
-[Action]
-Description = Deploying Limine after upgrade...
-When = PostTransaction
-Exec = /usr/bin/cp /usr/share/limine/BOOTX64.EFI /boot/
-    " >/etc/pacman.d/hooks/liminedeploy.hook || quit "Failed to create hook for automatically deplouing the boot loader after upgrade"
-elif [[ "'$SETUP_BOOT_MODE'" = "BIOS" ]]; then
-    echo "[Trigger]
-Operation = Install
-Operation = Upgrade
-Type = Package
-Target = limine
-
-[Action]
-Description = Deploying Limine after upgrade...
-When = PostTransaction
-Exec = /bin/bash -c \"/usr/bin/limine bios-install '$SETUP_DISK' && /usr/bin/cp /usr/share/limine/limine-bios.sys $SETUP_BOOT_LOADER_DIR\"
-    " >/etc/pacman.d/hooks/liminedeploy.hook || quit "Failed to create hook for automatically deploying the boot loader after upgrade"
-else
-    quit "Unknown boot mode: '$SETUP_BOOT_MODE'"
+echo "Installing custom packages"
+git clone https://github.com/cshmookler/archlinux-setup || quit "Failed to download custom packages"
+cd archlinux-setup || quit "Failed to change directory to archlinux-setup"
+installpkg() {
+    $SETUP_CUSTOM_PACKAGE=$1
+    cd $SETUP_CUSTOM_PACKAGE || quit "Failed to change directory to archlinux-setup/$SETUP_CUSTOM_PACKAGE"
+    makepkg --install || quit "Failed to create package $SETUP_CUSTOM_PACKAGE"
+    cd .. || quit "Failed to change directory to archlinux-setup"
+}
+installpkg cgs-limine
+if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
+    installpkg cgs-slock
+    installpkg cgs-dmenu
+    installpkg cgs-st
+    installpkg cgs-slstatus
+    installpkg cgs-dwm
 fi
-pacman -S --noconfirm limine || quit "Failed to deploy the boot loader"
-echo "TIMEOUT=0
-
-:Arch Linux
-    PROTOCOL=linux
-    KERNEL_PATH=boot:///vmlinuz-linux
-    CMDLINE=root=UUID=$(findmnt '$SETUP_DISK_ROOT' -no UUID) rw
-    MODULE_PATH=boot:///initramfs-linux.img
-" >/boot/limine/limine.cfg || quit "Failed to create the boot loader configuration file"
-
-if [[ "'$SETUP_BOOT_MODE'" = "UEFI-32" ]] || [[ "'$SETUP_BOOT_MODE'" = "UEFI-64" ]]; then
-    echo "Adding EFI boot label..."
-    efibootmgr --create --disk "'$SETUP_DISK_EFI'" --loader /BOOTX64.EFI --label "Arch Linux" --unicode || quit "Failed to create the EFI boot label"
-fi
+installpkg cgs-neovim-nightly
 
 echo "----------------------------------------"
-SETUP_USER="'$SETUP_USER'"
+export SETUP_USER="'$SETUP_USER'"
 echo "Creating user \"$SETUP_USER\"..."
 groupadd $SETUP_USER || quit "Failed to create group \"$SETUP_USER\""
 useradd -mg $SETUP_USER $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
 usermod --password $(openssl passwd -1 "'$SETUP_USER_PASSWORD'") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
 if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
-    echo "xmodmap /etc/vim_keyboard_layout/xmodmap-vim
-xset s 120 120 dpms 120 120 120
-nohup xss-lock slock </dev/null >/dev/null 2>&1 &
-/usr/local/src/dwm-bar/dwm_bar.sh &
-dwm
-physlock -p \"This console is locked by $'"USER"'\"" >/home/$SETUP_USER/.xinitrc || quit "Failed to create the X server init file"
+    installpkg cgs-xorg-user-cfg
     echo "
 # Start the X server on login
 if [ -z \"\$DISPLAY\" ] && [ \"\$XDG_VTNR\" = 1 ]; then
@@ -359,13 +331,19 @@ systemctl enable vim-keyboard-layout.service || quit "Failed to enable custom ke
 
 echo "----------------------------------------"
 echo "Securing ssh..."
-SETUP_SSH_CONFIG=/etc/ssh/sshd_config.d/sshd_config
+SETUP_SSH_CONFIG=/etc/ssh/sshd_config.d/10-secure.conf
 mkdir -p $(dirname $SETUP_SSH_CONFIG) || quit "Failed to create directory $SETUP_SSH_CONFIG"
 # By default, users within the sudo group can remotely login with ssh
-echo "
-AllowGroups $SETUP_SUDO_GROUP
+echo "AllowGroups $SETUP_SUDO_GROUP
 Port $SETUP_SSH_PORT
-Banner /etc/issue" >$SETUP_SSH_CONFIG || quit "Failed to create the ssh configuration file $SETUP_SSH_CONFIG"
+PasswordAuthentication no
+PubkeyAuthentication yes
+PermitEmptyPasswords no
+LoginGraceTime 1m
+PermitRootLogin no
+StrictModes yes
+MaxAuthTries 6
+MaxSessions 10" >$SETUP_SSH_CONFIG || quit "Failed to create the ssh configuration file $SETUP_SSH_CONFIG"
 systemctl enable sshd.service || quit "Failed to enable the ssh daemon"
 
 echo "----------------------------------------"
@@ -376,7 +354,7 @@ echo "----------------------------------------"
 echo "Adding the post-installation script..."
 SETUP_POST_INSTALL_SCRIPT=/etc/post_install.sh
 echo "ufw enable
-ufw allow $SETUP_SSH_PORT
+ufw limit $SETUP_SSH_PORT
 systemctl disable post-install.service
 rm /etc/systemd/system/post-install.service
 rm $SETUP_POST_INSTALL_SCRIPT" >$SETUP_POST_INSTALL_SCRIPT || quit "Failed to create the post-installation script"
@@ -393,45 +371,6 @@ WantedBy=graphical.target" >/etc/systemd/system/post-install.service || quit "Fa
 systemctl enable post-install.service || quit "Failed to enable the post installation script"
 
 if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
-    echo "----------------------------------------"
-    echo "Installing dwm..."
-    SETUP_DWM_SOURCE=/usr/local/src/dwm
-    git clone --depth=1 git://git.suckless.org/dwm $SETUP_DWM_SOURCE || quit "Failed to clone dwm"
-    cd $SETUP_DWM_SOURCE || quit "Failed to change directory to $SETUP_DWM_SOURCE"
-    curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/dwm/config.def.h.patch | patch || quit "Failed to patch dwm"
-    make clean install || quit "Failed to build dwm from source"
-
-    echo "----------------------------------------"
-    echo "Installing st..."
-    SETUP_ST_SOURCE=/usr/local/src/st
-    git clone --depth=1 git://git.suckless.org/st $SETUP_ST_SOURCE || quit "Failed to clone st"
-    cd $SETUP_ST_SOURCE || quit "Failed to change directory to $SETUP_ST_SOURCE"
-    curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/st/config.def.h.patch | patch || quit "Failed to patch st"
-    make clean install || quit "Failed to build st from source"
-
-    echo "----------------------------------------"
-    echo "Installing a status bar for dwm..."
-    SETUP_STATUS_SOURCE=/usr/local/src/dwm-bar
-    git clone --depth=1 https://github.com/joestandring/dwm-bar $SETUP_STATUS_SOURCE || quit "Failed to clone dwm-bar"
-    cd $SETUP_STATUS_SOURCE || quit "Failed to change directory to $SETUP_STATUS_SOURCE"
-    curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/dwm-bar/dwm_bar.sh.patch | patch || quit "Failed to patch dwm-bar"
-
-    echo "----------------------------------------"
-    echo "Installing dmenu..."
-    SETUP_DMENU_SOURCE=/usr/local/src/dmenu
-    git clone --depth=1 git://git.suckless.org/dmenu $SETUP_DMENU_SOURCE || quit "Failed to clone dmenu"
-    cd $SETUP_DMENU_SOURCE || quit "Failed to change directory to $SETUP_DMENU_SOURCE"
-    curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/dmenu/config.def.h.patch | patch || quit "Failed to patch dmenu"
-    make clean install || quit "Failed to build dmenu from source"
-
-    echo "----------------------------------------"
-    echo "Installing slock..."
-    SETUP_SLOCK_SOURCE=/usr/local/src/slock
-    git clone --depth=1 git://git.suckless.org/slock $SETUP_SLOCK_SOURCE || quit "Failed to clone slock"
-    cd $SETUP_SLOCK_SOURCE || quit "Failed to change directory to $SETUP_SLOCK_SOURCE"
-    curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/slock/config.def.h.patch | patch || quit "Failed to patch slock"
-    make clean install || quit "Failed to build slock from source"
-
     echo "----------------------------------------"
     echo "Disabling VT switching and zapping within the X server..."
     Xorg :0 -configure || quit "Failed to generate configuration for the X server"
@@ -456,16 +395,6 @@ user_pref(\"browser.urlbar.suggest.calculator\", true);" >/home/$SETUP_USER/.loc
 fi
 
 if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
-    echo "----------------------------------------"
-    echo "Installing neovim..."
-    SETUP_NVIM_SOURCE=/usr/local/src/nvim
-    mkdir -p $SETUP_NVIM_SOURCE || quit "Failed to create neovim source directory"
-    curl -L https://github.com/neovim/neovim/archive/refs/tags/nightly.tar.gz -o $SETUP_NVIM_SOURCE/nightly.tar.gz || quit "Failed to download neovim"
-    cd $SETUP_NVIM_SOURCE || quit "Failed to change directory to $SETUP_NVIM_SOURCE"
-    tar -xf nightly.tar.gz || quit "Failed to extract neovim"
-    cd $SETUP_NVIM_SOURCE/neovim-nightly || quit "Failed to change directory to $SETUP_NVIM_SOURCE/neovim-nightly"
-    make CMAKE_BUILD_TYPE=RelWithDebInfo install || quit "Failed to build neovim from source"
-
     echo "----------------------------------------"
     echo "Downloading the custom neovim configuration for user \"$SETUP_USER\"..."
     git clone --depth=1 https://github.com/cshmookler/config.nvim /home/$SETUP_USER/.config/nvim || quit "Failed to download the custom neovim configuration for user \"$SETUP_USER\""

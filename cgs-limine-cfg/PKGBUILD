@@ -1,0 +1,46 @@
+quit() {
+    echo "\e[31;1m$1\e[0m"
+    exit 1
+}
+
+preprocess() {
+    bash -c "bash -c 'echo \"$(cat $1)\"'"
+}
+
+pkgname="cgs-limine-cfg"
+pkgver="20231230"
+pkgrel=1
+pkgdesc="Pacman hook and configuration for limine"
+arch=("any")
+depends=("limine")
+conflicts=("$pkgname")
+
+package() {
+    if [[ -z "SETUP_BOOT_LOADER_DIR" ]]; then
+        export SETUP_BOOT_LOADER_DIR=/boot/limine
+    fi
+    if [[ -z "SETUP_BOOT_MODE" ]]; then
+        quit "SETUP_BOOT_MODE must be UEFI-32, UEFI-64, or BIOS"
+    fi
+    if [[ -z "SETUP_DISK_ROOT" ]]; then
+        quit "SETUP_DISK_ROOT must be defined"
+    fi
+    mkdir -p $pkgdir/$SETUP_BOOT_LOADER_DIR/
+    mkdir -p $pkgdir/etc/pacman.d/hooks/
+    if [[ "$SETUP_BOOT_MODE" = "UEFI-32" ]] || [[ "$SETUP_BOOT_MODE" = "UEFI-64" ]]; then
+        if [[ -z "SETUP_DISK_EFI" ]]; then
+            quit "SETUP_DISK_EFI must be defined for UEFI installation"
+        fi
+        preprocess liminedeploy-uefi.hook >$pkgdir/etc/pacman.d/books/liminedeploy.hook
+        efibootmgr --create --disk $SETUP_DISK_EFI --loader /BOOTX64.EFI --label "Arch Linux" --unicode
+    elif [[ "'$SETUP_BOOT_MODE'" = "BIOS" ]]; then
+        if [[ -z "SETUP_DISK" ]]; then
+            quit "SETUP_DISK must be defined for BIOS installation"
+        fi
+        preprocess liminedeploy-bios.hook >$pkgdir/etc/pacman.d/books/liminedeploy.hook
+    else
+        quit "SETUP_BOOT_MODE must be UEFI-32, UEFI-64, or BIOS"
+    fi
+    preprocess limine.cfg >$pkgdir/boot/limine/limine.cfg
+    pacman -S --noconfirm limine # Run the installation hook
+}
