@@ -214,6 +214,7 @@ fi
 
 echo "----------------------------------------"
 echo "Installing packages with pacstrap..."
+pacman -Sy archlinux-keyring || quit "Failed to update keyring"
 eval "pacstrap -K $SETUP_DISK_ROOT_MOUNT $SETUP_BASE_PACKAGES $SETUP_EXTRA_PACKAGES" || quit "Failed to install essential packages"
 
 echo "----------------------------------------"
@@ -267,20 +268,20 @@ echo "Installing custom packages"
 git clone https://github.com/cshmookler/archlinux-setup || quit "Failed to download custom packages"
 cd archlinux-setup || quit "Failed to change directory to archlinux-setup"
 installpkg() {
-    $SETUP_CUSTOM_PACKAGE=$1
-    cd $SETUP_CUSTOM_PACKAGE || quit "Failed to change directory to archlinux-setup/$SETUP_CUSTOM_PACKAGE"
-    makepkg --install || quit "Failed to create package $SETUP_CUSTOM_PACKAGE"
-    cd .. || quit "Failed to change directory to archlinux-setup"
+    for SETUP_CUSTOM_PACKAGE in "$@"
+    do
+        cd $SETUP_CUSTOM_PACKAGE || quit "Failed to change directory to archlinux-setup/$SETUP_CUSTOM_PACKAGE"
+        sudo -u nobody makepkg --install || quit "Failed to create package $SETUP_CUSTOM_PACKAGE"
+        cd .. || quit "Failed to change directory to archlinux-setup"
+    done
 }
 installpkg cgs-limine
 if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
-    installpkg cgs-slock
-    installpkg cgs-dmenu
-    installpkg cgs-st
-    installpkg cgs-slstatus
-    installpkg cgs-dwm
+    installpkg cgs-slock cgs-dmenu cgs-st cgs-slstatus cgs-dwm
 fi
-installpkg cgs-neovim-nightly
+if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
+    installpkg cgs-neovim-nightly
+fi
 
 echo "----------------------------------------"
 export SETUP_USER="'$SETUP_USER'"
