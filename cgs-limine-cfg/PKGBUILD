@@ -21,7 +21,7 @@ package() {
         efibootmgr --create --disk $SETUP_DISK_EFI --loader /BOOTX64.EFI --label "Arch Linux" --unicode
     else
         export SETUP_DISK=$(lsblk -npo pkname $SETUP_DISK_ROOT)
-        preprocess liminedeploy-bios.hook >$pkgdir/etc/pacman.d/books/liminedeploy.hook
+        preprocess liminedeploy-bios.hook >$pkgdir/etc/pacman.d/hooks/liminedeploy.hook
     fi
     preprocess limine.cfg >$pkgdir/$SETUP_BOOT_LOADER_DIR/limine.cfg
     pacman -S --noconfirm limine # Run the installation hook
