@@ -214,7 +214,7 @@ fi
 
 echo "----------------------------------------"
 echo "Installing packages with pacstrap..."
-pacman -Sy archlinux-keyring || quit "Failed to update keyring"
+pacman -Sy --noconfirm archlinux-keyring || quit "Failed to update keyring"
 eval "pacstrap -K $SETUP_DISK_ROOT_MOUNT $SETUP_BASE_PACKAGES $SETUP_EXTRA_PACKAGES" || quit "Failed to install essential packages"
 
 echo "----------------------------------------"
