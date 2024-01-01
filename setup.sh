@@ -112,7 +112,7 @@ if [[ -z "$SETUP_DISK" ]]; then
             SETUP_DISK=$SETUP_DISK_CANDIDATE_FIELD_1
         fi
     done <<<"$SETUP_LSBLK"
-    if [[ -z "$SETUP_DISK" ]]; then
+    if test -z "$SETUP_DISK"; then
         quit "Failed to find a disk that is larger than the minimum size requirement ($SETUP_DISK_MIN_BYTES bytes)"
     fi
 fi
@@ -267,6 +267,7 @@ echo "----------------------------------------"
 echo "Installing custom packages"
 git clone https://github.com/cshmookler/archlinux-setup || quit "Failed to download custom packages"
 cd archlinux-setup || quit "Failed to change directory to archlinux-setup"
+chown -R nobody:nobody . || quit "Failed to change directory permissions of archlinux-setup to nobody:nobody"
 installpkg() {
     for SETUP_CUSTOM_PACKAGE in "$@"
     do
@@ -275,7 +276,7 @@ installpkg() {
         cd .. || quit "Failed to change directory to archlinux-setup"
     done
 }
-installpkg cgs-limine
+installpkg cgs-limine-cfg
 if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
     installpkg cgs-slock cgs-dmenu cgs-st cgs-slstatus cgs-dwm
 fi

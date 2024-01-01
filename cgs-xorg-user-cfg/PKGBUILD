@@ -7,9 +7,6 @@ depends=("xorg" "xorg-init" "xss-lock" "physlock" "cgs-dwm" "cgs-slock" "cgs-sta
 conflicts=("$pkgname")
 
 package() {
-    if [[ -z "$SETUP_USER" ]]; then
-        SETUP_USER="$USER"
-    fi
-    mkdir -p $pkgdir/home/$SETUP_USER/
-    cp .xinitrc $pkgdir/home/$SETUP_USER/.xinitrc
+    mkdir -p $pkgdir/home/$USER/
+    cp .xinitrc $pkgdir/home/$USER/.xinitrc
 }
