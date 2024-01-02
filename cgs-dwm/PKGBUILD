@@ -22,11 +22,7 @@ pkgver() {
 
 build() {
     cd dwm
-    make DESTDIR="$pkgdir/"
-}
-
-check() {
-    dwm/dwm -v
+    make
 }
 
 package() {

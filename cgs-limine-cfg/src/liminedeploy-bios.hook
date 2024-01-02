@@ -7,4 +7,4 @@ Target = limine
 [Action]
 Description = Deploying Limine after upgrade...
 When = PostTransaction
-Exec = /bin/bash -c "/usr/bin/limine bios-install '$SETUP_DISK' && /usr/bin/cp /usr/share/limine/limine-bios.sys $SETUP_BOOT_LOADER_DIR"
+Exec = /bin/bash -c "/usr/bin/limine bios-install $SETUP_DISK && /usr/bin/cp /usr/share/limine/limine-bios.sys $SETUP_BOOT_LOADER_DIR"

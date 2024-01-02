@@ -3,7 +3,7 @@ pkgver="1.0.0"
 pkgrel=1
 pkgdesc="Patched dynamic menu for X"
 arch=("any")
-depends=("xorg-server")
+depends=("libx11" "libxinerama" "libxft")
 conflicts=("$pkgname")
 source=("git+https://git.suckless.org/dmenu")
 md5sums=("SKIP")
@@ -21,11 +21,7 @@ pkgver() {
 
 build() {
     cd dmenu
-    make DESTDIR="$pkgdir/"
-}
-
-check() {
-    dmenu/dmenu -v
+    make
 }
 
 package() {

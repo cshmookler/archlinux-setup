@@ -3,6 +3,7 @@ pkgver="1.0.0"
 pkgrel=1
 pkgdesc="Patched status monitor for window managers using WM_NAME of stdin to fill the status bar"
 arch=("any")
+depends=("libx11")
 conflicts=("$pkgname")
 source=("git+https://git.suckless.org/slstatus")
 md5sums=("SKIP")
@@ -20,11 +21,7 @@ pkgver() {
 
 build() {
     cd slstatus
-    make DESTDIR="$pkgdir/"
-}
-
-check() {
-    slstatus/slstatus -v
+    make
 }
 
 package() {

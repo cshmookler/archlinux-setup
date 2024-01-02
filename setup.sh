@@ -265,173 +265,176 @@ usermod --password $(openssl passwd -1 $SETUP_ROOT_PASSWORD) root || quit "Faile
 
 echo "----------------------------------------"
 echo "Installing custom packages"
+cd /tmp || quit "Failed to change directory to /tmp"
 git clone https://github.com/cshmookler/archlinux-setup || quit "Failed to download custom packages"
 cd archlinux-setup || quit "Failed to change directory to archlinux-setup"
 chown -R nobody:nobody . || quit "Failed to change directory permissions of archlinux-setup to nobody:nobody"
 echo "%nobody ALL=(ALL:ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to temporarily give sudo privileges to user \"nobody\""
-installpkg() {
-    for SETUP_CUSTOM_PACKAGE in "$@"
-    do
-        cd $SETUP_CUSTOM_PACKAGE || quit "Failed to change directory to archlinux-setup/$SETUP_CUSTOM_PACKAGE"
-        sudo -u nobody makepkg --install --syncdeps --noconfirm || quit "Failed to create package $SETUP_CUSTOM_PACKAGE"
-        cd .. || quit "Failed to change directory to archlinux-setup"
-    done
-}
-installpkg cgs-limine-cfg
-if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
-    installpkg cgs-slock cgs-dmenu cgs-st cgs-slstatus cgs-dwm
-fi
-if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
-    installpkg cgs-neovim-nightly
-fi
-EDITOR="vim -c ':$ | delete 1 | wq'" visudo || quit "Failed to remove sudo priveleges to user \"nobody\""
-
-echo "----------------------------------------"
-export SETUP_USER="'$SETUP_USER'"
-echo "Creating user \"$SETUP_USER\"..."
-groupadd $SETUP_USER || quit "Failed to create group \"$SETUP_USER\""
-useradd -mg $SETUP_USER $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
-usermod --password $(openssl passwd -1 "'$SETUP_USER_PASSWORD'") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
-if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
-    installpkg cgs-xorg-user-cfg
-    echo "
-# Start the X server on login
-if [ -z \"\$DISPLAY\" ] && [ \"\$XDG_VTNR\" = 1 ]; then
-    startx
-fi
-" >>/home/$SETUP_USER/.bash_profile || quit "Failed to enable starting the X server upon login"
-fi
-
-echo "----------------------------------------"
-echo "Giving the user \"$SETUP_USER\" root privileges..."
-SETUP_SUDO_GROUP="'$SETUP_SUDO_GROUP'"
-echo "%$SETUP_SUDO_GROUP ALL=(ALL:ALL) ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to give sudo privileges to the \"$SETUP_SUDO_GROUP\" group"
-usermod -aG $SETUP_SUDO_GROUP $SETUP_USER || quit "Failed to give sudo privileges to user \"$SETUP_USER\""
-
-echo "----------------------------------------"
-echo "Adding custom startup scripts..."
-SETUP_VIM_KEYBOARD_LAYOUT="/etc/vim_keyboard_layout/us-vim.kmap"
-SETUP_VIM_KEYBOARD_LAYOUT_DIR="$(dirname $SETUP_VIM_KEYBOARD_LAYOUT)"
-mkdir -p $SETUP_VIM_KEYBOARD_LAYOUT_DIR || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR"
-curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/tty/us.kmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/us.kmap || quit "Failed to download the default console keyboard layout"
-curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/tty/us-vim.kmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/us-vim.kmap || quit "Failed to download the custom console keyboard layout"
-if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
-    curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/x11/xmodmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/xmodmap || quit "Failed to download the default X11 keyboard layout"
-    curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/x11/xmodmap-vim >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/xmodmap-vim || quit "Failed to download the custom X11 keyboard layout"
-fi
-mkdir -p "/etc/profile.d/" || quit "Failed to create $SETUP_DISK_ROOT_MOUNT'/etc/profile.d/'"
-echo "loadkeys $SETUP_VIM_KEYBOARD_LAYOUT" >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/load_tty_layout.sh || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR/load_tty_layout.sh"
-mkdir -p /etc/systemd/system || quit "Failed to create /etc/systemd/system"
-echo "[Unit]
-Description=Loads the vim keyboard layout on startup
-After=multi-user.target
-
-[Service]
-ExecStart=/bin/bash /etc/vim_keyboard_layout/load_tty_layout.sh
-
-[Install]
-WantedBy=graphical.target" >/etc/systemd/system/vim-keyboard-layout.service || quit "Failed to create /etc/systemd/system/vim-keyboard-layout.service"
-systemctl enable vim-keyboard-layout.service || quit "Failed to enable custom keyboard layout"
-
-echo "----------------------------------------"
-echo "Securing ssh..."
-SETUP_SSH_CONFIG=/etc/ssh/sshd_config.d/10-secure.conf
-mkdir -p $(dirname $SETUP_SSH_CONFIG) || quit "Failed to create directory $SETUP_SSH_CONFIG"
-# By default, users within the sudo group can remotely login with ssh
-echo "AllowGroups $SETUP_SUDO_GROUP
-Port $SETUP_SSH_PORT
-PasswordAuthentication no
-PubkeyAuthentication yes
-PermitEmptyPasswords no
-LoginGraceTime 1m
-PermitRootLogin no
-StrictModes yes
-MaxAuthTries 6
-MaxSessions 10" >$SETUP_SSH_CONFIG || quit "Failed to create the ssh configuration file $SETUP_SSH_CONFIG"
-systemctl enable sshd.service || quit "Failed to enable the ssh daemon"
-
-echo "----------------------------------------"
-echo "Enabling the firewall..."
-systemctl enable ufw.service || quit "Failed to enable the ufw daemon"
-
-echo "----------------------------------------"
-echo "Adding the post-installation script..."
-SETUP_POST_INSTALL_SCRIPT=/etc/post_install.sh
-echo "ufw enable
-ufw limit $SETUP_SSH_PORT
-systemctl disable post-install.service
-rm /etc/systemd/system/post-install.service
-rm $SETUP_POST_INSTALL_SCRIPT" >$SETUP_POST_INSTALL_SCRIPT || quit "Failed to create the post-installation script"
-chmod +x $SETUP_POST_INSTALL_SCRIPT || quit "Failed to make the post-installation script executable"
-echo "[Unit]
-Description=Executes post-installation operations that can only be completed after booting into the installed operating system
-After=ufw.service
-
-[Service]
-ExecStart=/bin/bash $SETUP_POST_INSTALL_SCRIPT
-
-[Install]
-WantedBy=graphical.target" >/etc/systemd/system/post-install.service || quit "Failed to create /etc/systemd/system/post-install.service"
-systemctl enable post-install.service || quit "Failed to enable the post installation script"
-
-if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
-    echo "----------------------------------------"
-    echo "Disabling VT switching and zapping within the X server..."
-    Xorg :0 -configure || quit "Failed to generate configuration for the X server"
-    SETUP_XORG_CONF=/etc/X11/xorg.conf.d/xorg.conf
-    mkdir -p $(dirname $SETUP_XORG_CONF) || quit "Failed to create directory $SETUP_XORG_CONF"
-    mv /root/xorg.conf.new $SETUP_XORG_CONF || quit "Failed to move configuration for the X server to /etc/X11/"
-    echo "Section \"ServerFlags\"
-        Option \"DontVTSwitch\" \"True\"
-        Option \"DontZap\" \"True\"
-EndSection
-" >>$SETUP_XORG_CONF || quit "Failed to patch the X server configuration"
-
-    echo "----------------------------------------"
-    echo "Configuring the Tor Browser for user \"$SETUP_USER\"..."
-    mkdir -p /home/$SETUP_USER/.local/share/torbrowser/tbb/x86_64/tor-browser/Browser/TorBrowser/Data/Browser/profile.default/ || quit "Failed to create the Tor Browser profile directory for user \"$SETUP_USER\""
-    echo "user_pref(\"extensions.torlauncher.start_tor\", false);
-user_pref(\"network.dns.disabled\", false);
-user_pref(\"network.proxy.socks\", \" \");
-user_pref(\"browser.startup.homepage\", \"about:blank\");
-user_pref(\"browser.urlbar.suggest.bookmark\", false);
-user_pref(\"browser.urlbar.suggest.calculator\", true);" >/home/$SETUP_USER/.local/share/torbrowser/tbb/x86_64/tor-browser/Browser/TorBrowser/Data/Browser/profile.default/user.js || quit "Failed to configure the default Tor Browser profile for user \"$SETUP_USER\""
-fi
-
-if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
-    echo "----------------------------------------"
-    echo "Downloading the custom neovim configuration for user \"$SETUP_USER\"..."
-    git clone --depth=1 https://github.com/cshmookler/config.nvim /home/$SETUP_USER/.config/nvim || quit "Failed to download the custom neovim configuration for user \"$SETUP_USER\""
-
-    echo "----------------------------------------"
-    echo "Generating dictionary for neovim..."
-    mkdir -p /etc/xdg/nvim/ || quit "Failed to create /etc/xdg/nvim/"
-    aspell -d en dump master | aspell -l en expand >/etc/xdg/nvim/en.dict || quit "Failed generate the dictionary for neovim"
-fi
-
-echo "----------------------------------------"
-echo "Changing ownership of all files in /home/$SETUP_USER from root to user \"$SETUP_USER\"..."
-chown -R $SETUP_USER:$SETUP_USER /home/$SETUP_USER || quit "Failed to change ownership of files in /home/$SETUP_USER from root to user \"$SETUP_USER\"..."
-
-echo "----------------------------------------"
-echo "Changing root back to installation media..."
-exit 0
-
 ' || quit "Failed operation while root was changed to $SETUP_DISK_ROOT_MOUNT"
 
-echo "----------------------------------------"
-echo "Unmounting all file systems on $SETUP_DISK_ROOT_MOUNT"
-umount -R $SETUP_DISK_ROOT_MOUNT || quit "Failed to unmount all file systems on $SETUP_DISK_ROOT_MOUNT"
+# installpkg() {
+#     for SETUP_CUSTOM_PACKAGE in "$@"
+#     do
+#         cd $SETUP_CUSTOM_PACKAGE || quit "Failed to change directory to archlinux-setup/$SETUP_CUSTOM_PACKAGE"
+#         sudo -u nobody makepkg --install --syncdeps --noconfirm || quit "Failed to create package $SETUP_CUSTOM_PACKAGE"
+#         cd .. || quit "Failed to change directory to archlinux-setup"
+#     done
+# }
+# installpkg cgs-limine-cfg
+# if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
+#     installpkg cgs-slock cgs-dmenu cgs-st cgs-slstatus cgs-dwm
+# fi
+# if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
+#     installpkg cgs-neovim-nightly
+# fi
+# EDITOR="vim -c \':$ | delete 1 | wq\'" visudo || quit "Failed to remove sudo priveleges to user \"nobody\""
 
-echo "----------------------------------------"
-echo "\e[32;1mSuccessfully installed Arch Linux\e[0m"
+# echo "----------------------------------------"
+# export SETUP_USER="'$SETUP_USER'"
+# echo "Creating user \"$SETUP_USER\"..."
+# groupadd $SETUP_USER || quit "Failed to create group \"$SETUP_USER\""
+# useradd -mg $SETUP_USER $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
+# usermod --password $(openssl passwd -1 "'$SETUP_USER_PASSWORD'") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
+# if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
+#     installpkg cgs-xorg-user-cfg
+#     echo "
+# # Start the X server on login
+# if [ -z \"\$DISPLAY\" ] && [ \"\$XDG_VTNR\" = 1 ]; then
+#     startx
+# fi
+# " >>/home/$SETUP_USER/.bash_profile || quit "Failed to enable starting the X server upon login"
+# fi
 
-echo "----------------------------------------"
-if [[ "$SETUP_RESTART_TIME" -ne "-1" ]]; then
-    timer $SETUP_RESTART_TIME "Restarting"
-    shutdown -r now || quit "Failed to restart"
-else
-    echo "Restart cancelled"
-fi
+# echo "----------------------------------------"
+# echo "Giving the user \"$SETUP_USER\" root privileges..."
+# SETUP_SUDO_GROUP="'$SETUP_SUDO_GROUP'"
+# echo "%$SETUP_SUDO_GROUP ALL=(ALL:ALL) ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to give sudo privileges to the \"$SETUP_SUDO_GROUP\" group"
+# usermod -aG $SETUP_SUDO_GROUP $SETUP_USER || quit "Failed to give sudo privileges to user \"$SETUP_USER\""
+
+# echo "----------------------------------------"
+# echo "Adding custom startup scripts..."
+# SETUP_VIM_KEYBOARD_LAYOUT="/etc/vim_keyboard_layout/us-vim.kmap"
+# SETUP_VIM_KEYBOARD_LAYOUT_DIR="$(dirname $SETUP_VIM_KEYBOARD_LAYOUT)"
+# mkdir -p $SETUP_VIM_KEYBOARD_LAYOUT_DIR || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR"
+# curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/tty/us.kmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/us.kmap || quit "Failed to download the default console keyboard layout"
+# curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/tty/us-vim.kmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/us-vim.kmap || quit "Failed to download the custom console keyboard layout"
+# if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
+#     curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/x11/xmodmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/xmodmap || quit "Failed to download the default X11 keyboard layout"
+#     curl https://raw.githubusercontent.com/cshmookler/vim_keyboard_layout/main/x11/xmodmap-vim >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/xmodmap-vim || quit "Failed to download the custom X11 keyboard layout"
+# fi
+# mkdir -p "/etc/profile.d/" || quit "Failed to create $SETUP_DISK_ROOT_MOUNT'/etc/profile.d/'"
+# echo "loadkeys $SETUP_VIM_KEYBOARD_LAYOUT" >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/load_tty_layout.sh || quit "Failed to create $SETUP_VIM_KEYBOARD_LAYOUT_DIR/load_tty_layout.sh"
+# mkdir -p /etc/systemd/system || quit "Failed to create /etc/systemd/system"
+# echo "[Unit]
+# Description=Loads the vim keyboard layout on startup
+# After=multi-user.target
+
+# [Service]
+# ExecStart=/bin/bash /etc/vim_keyboard_layout/load_tty_layout.sh
+
+# [Install]
+# WantedBy=graphical.target" >/etc/systemd/system/vim-keyboard-layout.service || quit "Failed to create /etc/systemd/system/vim-keyboard-layout.service"
+# systemctl enable vim-keyboard-layout.service || quit "Failed to enable custom keyboard layout"
+
+# echo "----------------------------------------"
+# echo "Securing ssh..."
+# SETUP_SSH_CONFIG=/etc/ssh/sshd_config.d/10-secure.conf
+# mkdir -p $(dirname $SETUP_SSH_CONFIG) || quit "Failed to create directory $SETUP_SSH_CONFIG"
+# # By default, users within the sudo group can remotely login with ssh
+# echo "AllowGroups $SETUP_SUDO_GROUP
+# Port $SETUP_SSH_PORT
+# PasswordAuthentication no
+# PubkeyAuthentication yes
+# PermitEmptyPasswords no
+# LoginGraceTime 1m
+# PermitRootLogin no
+# StrictModes yes
+# MaxAuthTries 6
+# MaxSessions 10" >$SETUP_SSH_CONFIG || quit "Failed to create the ssh configuration file $SETUP_SSH_CONFIG"
+# systemctl enable sshd.service || quit "Failed to enable the ssh daemon"
+
+# echo "----------------------------------------"
+# echo "Enabling the firewall..."
+# systemctl enable ufw.service || quit "Failed to enable the ufw daemon"
+
+# echo "----------------------------------------"
+# echo "Adding the post-installation script..."
+# SETUP_POST_INSTALL_SCRIPT=/etc/post_install.sh
+# echo "ufw enable
+# ufw limit $SETUP_SSH_PORT
+# systemctl disable post-install.service
+# rm /etc/systemd/system/post-install.service
+# rm $SETUP_POST_INSTALL_SCRIPT" >$SETUP_POST_INSTALL_SCRIPT || quit "Failed to create the post-installation script"
+# chmod +x $SETUP_POST_INSTALL_SCRIPT || quit "Failed to make the post-installation script executable"
+# echo "[Unit]
+# Description=Executes post-installation operations that can only be completed after booting into the installed operating system
+# After=ufw.service
+
+# [Service]
+# ExecStart=/bin/bash $SETUP_POST_INSTALL_SCRIPT
+
+# [Install]
+# WantedBy=graphical.target" >/etc/systemd/system/post-install.service || quit "Failed to create /etc/systemd/system/post-install.service"
+# systemctl enable post-install.service || quit "Failed to enable the post installation script"
+
+# if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
+#     echo "----------------------------------------"
+#     echo "Disabling VT switching and zapping within the X server..."
+#     Xorg :0 -configure || quit "Failed to generate configuration for the X server"
+#     SETUP_XORG_CONF=/etc/X11/xorg.conf.d/xorg.conf
+#     mkdir -p $(dirname $SETUP_XORG_CONF) || quit "Failed to create directory $SETUP_XORG_CONF"
+#     mv /root/xorg.conf.new $SETUP_XORG_CONF || quit "Failed to move configuration for the X server to /etc/X11/"
+#     echo "Section \"ServerFlags\"
+#         Option \"DontVTSwitch\" \"True\"
+#         Option \"DontZap\" \"True\"
+# EndSection
+# " >>$SETUP_XORG_CONF || quit "Failed to patch the X server configuration"
+
+#     echo "----------------------------------------"
+#     echo "Configuring the Tor Browser for user \"$SETUP_USER\"..."
+#     mkdir -p /home/$SETUP_USER/.local/share/torbrowser/tbb/x86_64/tor-browser/Browser/TorBrowser/Data/Browser/profile.default/ || quit "Failed to create the Tor Browser profile directory for user \"$SETUP_USER\""
+#     echo "user_pref(\"extensions.torlauncher.start_tor\", false);
+# user_pref(\"network.dns.disabled\", false);
+# user_pref(\"network.proxy.socks\", \" \");
+# user_pref(\"browser.startup.homepage\", \"about:blank\");
+# user_pref(\"browser.urlbar.suggest.bookmark\", false);
+# user_pref(\"browser.urlbar.suggest.calculator\", true);" >/home/$SETUP_USER/.local/share/torbrowser/tbb/x86_64/tor-browser/Browser/TorBrowser/Data/Browser/profile.default/user.js || quit "Failed to configure the default Tor Browser profile for user \"$SETUP_USER\""
+# fi
+
+# if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
+#     echo "----------------------------------------"
+#     echo "Downloading the custom neovim configuration for user \"$SETUP_USER\"..."
+#     git clone --depth=1 https://github.com/cshmookler/config.nvim /home/$SETUP_USER/.config/nvim || quit "Failed to download the custom neovim configuration for user \"$SETUP_USER\""
+
+#     echo "----------------------------------------"
+#     echo "Generating dictionary for neovim..."
+#     mkdir -p /etc/xdg/nvim/ || quit "Failed to create /etc/xdg/nvim/"
+#     aspell -d en dump master | aspell -l en expand >/etc/xdg/nvim/en.dict || quit "Failed generate the dictionary for neovim"
+# fi
+
+# echo "----------------------------------------"
+# echo "Changing ownership of all files in /home/$SETUP_USER from root to user \"$SETUP_USER\"..."
+# chown -R $SETUP_USER:$SETUP_USER /home/$SETUP_USER || quit "Failed to change ownership of files in /home/$SETUP_USER from root to user \"$SETUP_USER\"..."
+
+# echo "----------------------------------------"
+# echo "Changing root back to installation media..."
+# exit 0
+
+# ' || quit "Failed operation while root was changed to $SETUP_DISK_ROOT_MOUNT"
+
+# echo "----------------------------------------"
+# echo "Unmounting all file systems on $SETUP_DISK_ROOT_MOUNT"
+# umount -R $SETUP_DISK_ROOT_MOUNT || quit "Failed to unmount all file systems on $SETUP_DISK_ROOT_MOUNT"
+
+# echo "----------------------------------------"
+# echo "\e[32;1mSuccessfully installed Arch Linux\e[0m"
+
+# echo "----------------------------------------"
+# if [[ "$SETUP_RESTART_TIME" -ne "-1" ]]; then
+#     timer $SETUP_RESTART_TIME "Restarting"
+#     shutdown -r now || quit "Failed to restart"
+# else
+#     echo "Restart cancelled"
+# fi
 
 exit 0

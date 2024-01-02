@@ -18,7 +18,7 @@ pkgver() {
 
 build() {
     cd neovim
-    make DESTDIR="$pkgdir/" CMAKE_BUILD_TYPE=RelWithDebInfo
+    make CMAKE_BUILD_TYPE=RelWithDebInfo
 }
 
 check() {
