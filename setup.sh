@@ -48,12 +48,15 @@ fi
 if [[ -z "$SETUP_EXTRA_PACKAGES" ]]; then
     export SETUP_EXTRA_PACKAGES=""
 fi
-export SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion zsh zsh-completions man-db man-pages texinfo zip unzip curl git python htop lynx ufw transmission-cli openssh openvpn arch-wiki-lite"
+# export SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion zsh zsh-completions man-db man-pages texinfo zip unzip curl git python htop lynx ufw transmission-cli openssh openvpn arch-wiki-lite"
+export SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager bash bash-completion zsh zsh-completions man-db man-pages texinfo curl git"
 if [[ "$SETUP_HEADLESS" = "false" ]]; then
-    export SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock physlock ttf-hack-nerd noto-fonts-emoji torbrowser-launcher gtkmm3 alsa-lib vlc pulseaudio libreoffice-fresh xreader $SETUP_EXTRA_PACKAGES"
+    # export SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock physlock ttf-hack-nerd noto-fonts-emoji torbrowser-launcher gtkmm3 alsa-lib vlc pulseaudio libreoffice-fresh xreader $SETUP_EXTRA_PACKAGES"
+    export SETUP_EXTRA_PACKAGES="$SETUP_EXTRA_PACKAGES"
 fi
 if [[ "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
-    export SETUP_EXTRA_PACKAGES="clang python-black cmake ninja lua-language-server bash-language-server aspell aspell-en $SETUP_EXTRA_PACKAGES"
+    # export SETUP_EXTRA_PACKAGES="clang python-black cmake ninja lua-language-server bash-language-server aspell aspell-en $SETUP_EXTRA_PACKAGES"
+    export SETUP_EXTRA_PACKAGES="$SETUP_EXTRA_PACKAGES"
 fi
 if [[ -z "$SETUP_TIME_ZONE" ]]; then
     export SETUP_TIME_ZONE="America/Denver"

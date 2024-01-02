@@ -7,7 +7,7 @@ pkgver="20231230"
 pkgrel=1
 pkgdesc="Pacman hook and configuration for limine"
 arch=("any")
-depends=("limine")
+depends=("limine" "efibootmgr")
 conflicts=("$pkgname")
 
 package() {
