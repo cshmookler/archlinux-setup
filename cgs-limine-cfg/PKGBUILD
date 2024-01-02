@@ -1,5 +1,5 @@
 preprocess() {
-    sudo bash -c "echo \"$(cat $1)\""
+    sudo -E bash -uec "echo \"$(cat $1)\""
 }
 
 pkgname="cgs-limine-cfg"
