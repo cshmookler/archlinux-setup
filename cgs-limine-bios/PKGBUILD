@@ -1,0 +1,22 @@
+preprocess() {
+    sudo -E bash -uec "echo \"$(cat $1)\""
+}
+
+pkgname="cgs-limine-bios"
+pkgver="20230102"
+pkgrel=1
+pkgdesc="Pacman hook and configuration for limine"
+arch=("any")
+depends=("limine")
+conflicts=("$pkgname")
+
+package() {
+    export SETUP_BOOT_LOADER_DIR=/boot/limine
+    export SETUP_DISK_ROOT=$(df -P / | awk 'END{print $1}')
+    mkdir -p $pkgdir/$SETUP_BOOT_LOADER_DIR/
+    mkdir -p $pkgdir/etc/pacman.d/hooks/
+    export SETUP_DISK=$(lsblk -npo pkname $SETUP_DISK_ROOT)
+    preprocess liminedeploy-bios.hook >$pkgdir/etc/pacman.d/hooks/liminedeploy.hook
+    preprocess limine.cfg >$pkgdir/$SETUP_BOOT_LOADER_DIR/limine.cfg
+    sudo pacman -S --noconfirm limine # Run the installation hook
+}

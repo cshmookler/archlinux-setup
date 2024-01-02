@@ -2,8 +2,8 @@ preprocess() {
     sudo -E bash -uec "echo \"$(cat $1)\""
 }
 
-pkgname="cgs-limine-cfg"
-pkgver="20231230"
+pkgname="cgs-limine-uefi"
+pkgver="20230102"
 pkgrel=1
 pkgdesc="Pacman hook and configuration for limine"
 arch=("any")
@@ -15,14 +15,9 @@ package() {
     export SETUP_DISK_ROOT=$(df -P / | awk 'END{print $1}')
     mkdir -p $pkgdir/$SETUP_BOOT_LOADER_DIR/
     mkdir -p $pkgdir/etc/pacman.d/hooks/
-    if test -f /sys/firmware/efi/fw_platform_size; then
-        export SETUP_DISK_EFI=$(df -P /boot | awk 'END{print $1}')
-        preprocess liminedeploy-uefi.hook >$pkgdir/etc/pacman.d/hooks/liminedeploy.hook
-        efibootmgr --create --disk $SETUP_DISK_EFI --loader /BOOTX64.EFI --label "Arch Linux" --unicode
-    else
-        export SETUP_DISK=$(lsblk -npo pkname $SETUP_DISK_ROOT)
-        preprocess liminedeploy-bios.hook >$pkgdir/etc/pacman.d/hooks/liminedeploy.hook
-    fi
+    export SETUP_DISK_EFI=$(df -P /boot | awk 'END{print $1}')
+    preprocess liminedeploy-uefi.hook >$pkgdir/etc/pacman.d/hooks/liminedeploy.hook
+    efibootmgr --create --disk $SETUP_DISK_EFI --loader /BOOTX64.EFI --label "Arch Linux" --unicode
     preprocess limine.cfg >$pkgdir/$SETUP_BOOT_LOADER_DIR/limine.cfg
     sudo pacman -S --noconfirm limine # Run the installation hook
 }

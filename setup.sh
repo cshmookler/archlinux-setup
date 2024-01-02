@@ -283,7 +283,13 @@ echo "%nobody ALL=(ALL:ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo || quit
 #         cd .. || quit "Failed to change directory to archlinux-setup"
 #     done
 # }
-# installpkg cgs-limine-cfg
+# if [[ "$SETUP_BOOT_MODE" = "UEFI-32" ]] || [[ "$SETUP_BOOT_MODE" = "UEFI-64" ]]; then
+#     installpkg cgs-limine-uefi
+# elif [[ "$SETUP_BOOT_MODE" = "BIOS" ]]; then
+#     installpkg cgs-limine-bios
+# else
+#     quit "Invalid boot mode \"$SETUP_BOOT_MODE\""
+# fi
 # if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
 #     installpkg cgs-slock cgs-dmenu cgs-st cgs-slstatus cgs-dwm
 # fi
