@@ -24,5 +24,5 @@ package() {
         preprocess liminedeploy-bios.hook >$pkgdir/etc/pacman.d/hooks/liminedeploy.hook
     fi
     preprocess limine.cfg >$pkgdir/$SETUP_BOOT_LOADER_DIR/limine.cfg
-    pacman -S --noconfirm limine # Run the installation hook
+    sudo pacman -S --noconfirm limine # Run the installation hook
 }

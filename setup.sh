@@ -268,11 +268,12 @@ echo "Installing custom packages"
 git clone https://github.com/cshmookler/archlinux-setup || quit "Failed to download custom packages"
 cd archlinux-setup || quit "Failed to change directory to archlinux-setup"
 chown -R nobody:nobody . || quit "Failed to change directory permissions of archlinux-setup to nobody:nobody"
+echo "%nobody ALL=(ALL:ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to temporarily give sudo privileges to user \"nobody\""
 installpkg() {
     for SETUP_CUSTOM_PACKAGE in "$@"
     do
         cd $SETUP_CUSTOM_PACKAGE || quit "Failed to change directory to archlinux-setup/$SETUP_CUSTOM_PACKAGE"
-        sudo -u nobody makepkg --install || quit "Failed to create package $SETUP_CUSTOM_PACKAGE"
+        sudo -u nobody makepkg --install --syncdeps --noconfirm || quit "Failed to create package $SETUP_CUSTOM_PACKAGE"
         cd .. || quit "Failed to change directory to archlinux-setup"
     done
 }
@@ -283,6 +284,7 @@ fi
 if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
     installpkg cgs-neovim-nightly
 fi
+EDITOR="vim -c ':$ | delete 1 | wq'" visudo || quit "Failed to remove sudo priveleges to user \"nobody\""
 
 echo "----------------------------------------"
 export SETUP_USER="'$SETUP_USER'"

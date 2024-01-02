@@ -3,7 +3,7 @@ pkgver="1.0.0"
 pkgrel=1
 pkgdesc="User configuration for Xorg"
 arch=("any")
-depends=("xorg" "xorg-init" "xss-lock" "physlock" "cgs-dwm" "cgs-slock" "cgs-status")
+depends=("xorg-server" "xorg-xset" "xorg-xmodmap" "xorg-init" "xss-lock" "physlock" "cgs-dwm" "cgs-slock" "cgs-status")
 conflicts=("$pkgname")
 
 package() {
