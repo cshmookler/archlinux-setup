@@ -19,6 +19,6 @@ package() {
     preprocess $startdir/liminedeploy-uefi.hook >$pkgdir/etc/pacman.d/hooks/liminedeploy.hook
     preprocess $startdir/limine.cfg >$pkgdir/$SETUP_BOOT_LOADER_DIR/limine.cfg
     export SETUP_TEMP=$(mktemp)
-    preprocess $pkgname.install >$SETUP_TEMP
+    preprocess $startdir/$pkgname.install >$SETUP_TEMP
     cp $SETUP_TEMP $startdir/$pkgname.install
 }
