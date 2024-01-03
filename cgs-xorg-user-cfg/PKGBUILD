@@ -3,9 +3,9 @@ pkgver=20240102
 pkgrel=1
 pkgdesc="User configuration for Xorg"
 arch=("any")
-depends=($(pacman -Sgq xorg) "xorg-init" "xss-lock" "physlock" "cgs-dwm" "cgs-slock" "cgs-slstatus")
+depends=($(pacman -Sgq xorg) "xorg-xinit" "xss-lock" "physlock" "cgs-dwm" "cgs-slock" "cgs-slstatus")
 
 package() {
     mkdir -p $pkgdir/home/$USER/
-    cp .xinitrc $pkgdir/home/$USER/
+    cp $startdir/.xinitrc $pkgdir/home/$USER/
 }
