@@ -18,5 +18,7 @@ package() {
     export SETUP_DISK=$(lsblk -npo pkname $SETUP_DISK_ROOT)
     preprocess $startdir/liminedeploy-bios.hook >$pkgdir/etc/pacman.d/hooks/liminedeploy.hook
     preprocess $startdir/limine.cfg >$pkgdir/$SETUP_BOOT_LOADER_DIR/limine.cfg
-    preprocess $pkgname.install >$startdir/pkgname.install
+    export SETUP_TEMP=$(mktemp)
+    preprocess $pkgname.install >$SETUP_TEMP
+    cp $SETUP_TEMP $startdir/$pkgname.install
 }
