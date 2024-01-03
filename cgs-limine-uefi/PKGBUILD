@@ -8,6 +8,7 @@ pkgrel=1
 pkgdesc="Pacman hook and configuration for limine"
 arch=("any")
 depends=("limine" "efibootmgr")
+install="$pkgname.install"
 
 package() {
     export SETUP_BOOT_LOADER_DIR=/boot/limine
@@ -18,5 +19,4 @@ package() {
     preprocess $startdir/liminedeploy-uefi.hook >$pkgdir/etc/pacman.d/hooks/liminedeploy.hook
     preprocess $startdir/limine.cfg >$pkgdir/$SETUP_BOOT_LOADER_DIR/limine.cfg
     efibootmgr --create --disk $SETUP_DISK_EFI --loader /BOOTX64.EFI --label "Arch Linux" --unicode
-    sudo pacman -Sy --noconfirm limine # Run the installation hook
 }

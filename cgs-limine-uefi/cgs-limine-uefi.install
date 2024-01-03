@@ -1,0 +1,3 @@
+post_install() {
+    sudo pacman -Sy --noconfirm limine # Run the installation hook
+}

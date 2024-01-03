@@ -18,7 +18,7 @@ pkgver() {
 
 build() {
     cd $srcdir/neovim
-    make CMAKE_BUILD_TYPE=RelWithDebInfo
+    make CMAKE_BUILD_TYPE=RelWithDebInfo CMAKE_INSTALL_PREFIX="/usr"
 }
 
 check() {
@@ -29,7 +29,7 @@ check() {
 
 package() {
     cd $srcdir/neovim
-    make PREFIX="/usr" DESTDIR="$pkgdir/" install
+    make DESTDIR="$pkgdir/" install
     mkdir -p "$pkgdir/usr/share/licenses/$pkgname/"
     mkdir -p "$pkgdir/usr/share/doc/$pkgname/"
     install -Dm644 LICENSE.txt "$pkgdir/usr/share/licenses/$pkgname/"
