@@ -18,5 +18,5 @@ package() {
     export SETUP_DISK_EFI=$(df -P /boot | awk 'END{print $1}')
     preprocess $startdir/liminedeploy-uefi.hook >$pkgdir/etc/pacman.d/hooks/liminedeploy.hook
     preprocess $startdir/limine.cfg >$pkgdir/$SETUP_BOOT_LOADER_DIR/limine.cfg
-    efibootmgr --create --disk $SETUP_DISK_EFI --loader /BOOTX64.EFI --label "Arch Linux" --unicode
+    preprocess $pkgname.install >$startdir/pkgname.install
 }

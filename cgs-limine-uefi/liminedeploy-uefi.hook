@@ -7,4 +7,4 @@ Target = limine
 [Action]
 Description = Deploying Limine after upgrade...
 When = PostTransaction
-Exec = /usr/bin/cp /usr/share/limine/BOOTX64.EFI /boot/
+Exec = /usr/bin/cp /usr/share/limine/BOOTX64.EFI "$SETUP_BOOT_LOADER_DIR"

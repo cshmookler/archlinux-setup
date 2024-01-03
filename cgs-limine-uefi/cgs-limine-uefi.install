@@ -1,3 +1,4 @@
 post_install() {
-    sudo pacman -Sy --noconfirm limine # Run the installation hook
+    cp /usr/share/limine/BOOTX64.EFI $SETUP_BOOT_LOADER_DIR
+    efibootmgr --create --disk $SETUP_DISK_EFI --loader /limine/BOOTX64.EFI --label "Arch Linux" --unicode
 }

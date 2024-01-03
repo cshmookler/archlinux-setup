@@ -1,3 +1,4 @@
 post_install() {
-    sudo pacman -Sy --noconfirm limine # Run the installation hook
+    limine bios-install $SETUP_DISK
+    cp /usr/share/limine/limine-bios.sys $SETUP_BOOT_LOADER_DIR
 }
