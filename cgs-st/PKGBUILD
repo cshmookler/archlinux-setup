@@ -1,30 +1,33 @@
 pkgname="cgs-st"
-pkgver="1.0.0"
+pkgver=20231007
 pkgrel=1
 pkgdesc="Patched simple terminal for X"
 arch=("any")
-depends=("xorg-server")
-conflicts=("$pkgname")
+url="https://st.suckless.org"
+license=("MIT")
+options=("zipman")
+depends=($(pacman -Sgq xorg) "ttf-hack-nerd" "noto-fonts")
 source=("git+https://git.suckless.org/st")
 md5sums=("SKIP")
 
 prepare() {
-    cp config.def.h.patch st
-    cd st
-    patch <config.def.h.patch
+    cd $srcdir/st
+    patch <$startdir/config.def.h.patch
 }
 
 pkgver() {
-    cd st
+    cd $srcdir/st
     git log -1 --date=format:"%Y%m%d" --format="%ad"
 }
 
 build() {
-    cd st
+    cd $srcdir/st
     make
 }
 
 package() {
-    cd st
-    make DESTDIR="$pkgdir/" install
+    cd $srcdir/st
+    make PREFIX="/usr" DESTDIR="$pkgdir/" install
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/"
+    install -Dm644 README "$pkgdir/usr/share/doc/$pkgname/"
 }

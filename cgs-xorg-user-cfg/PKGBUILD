@@ -1,12 +1,11 @@
 pkgname="cgs-xorg-user-cfg"
-pkgver="1.0.0"
+pkgver=20240102
 pkgrel=1
 pkgdesc="User configuration for Xorg"
 arch=("any")
-depends=("xorg-server" "xorg-xset" "xorg-xmodmap" "xorg-init" "xss-lock" "physlock" "cgs-dwm" "cgs-slock" "cgs-status")
-conflicts=("$pkgname")
+depends=($(pacman -Sgq xorg) "xorg-init" "xss-lock" "physlock" "cgs-dwm" "cgs-slock" "cgs-slstatus")
 
 package() {
     mkdir -p $pkgdir/home/$USER/
-    cp .xinitrc $pkgdir/home/$USER/.xinitrc
+    cp .xinitrc $pkgdir/home/$USER/
 }

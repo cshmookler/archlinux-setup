@@ -1,30 +1,33 @@
 pkgname="cgs-slock"
-pkgver="1.0.0"
+pkgver=20231006
 pkgrel=1
 pkgdesc="Patched simple display locker for X"
 arch=("any")
-depends=("xorg-server")
-conflicts=("$pkgname")
+url="https://tools.suckless.org/slock"
+license=("MIT")
+options=("zipman")
+depends=($(pacman -Sgq xorg))
 source=("git+https://git.suckless.org/slock")
 md5sums=("SKIP")
 
 prepare() {
-    cp config.def.h.patch slock
-    cd slock
-    patch <config.def.h.patch
+    cd $srcdir/slock
+    patch <$startdir/config.def.h.patch
 }
 
 pkgver() {
-    cd slock
+    cd $srcdir/slock
     git log -1 --date=format:"%Y%m%d" --format="%ad"
 }
 
 build() {
-    cd slock
+    cd $srcdir/slock
     make
 }
 
 package() {
-    cd slock
-    make DESTDIR="$pkgdir/" install
+    cd $srcdir/slock
+    make PREFIX="/usr" DESTDIR="$pkgdir/" install
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/"
+    install -Dm644 README "$pkgdir/usr/share/doc/$pkgname/"
 }

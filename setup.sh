@@ -273,52 +273,53 @@ git clone https://github.com/cshmookler/archlinux-setup || quit "Failed to downl
 cd archlinux-setup || quit "Failed to change directory to archlinux-setup"
 chown -R nobody:nobody . || quit "Failed to change directory permissions of archlinux-setup to nobody:nobody"
 echo "%nobody ALL=(ALL:ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to temporarily give sudo privileges to user \"nobody\""
+
+installpkg() {
+    for SETUP_CUSTOM_PACKAGE in "$@"
+    do
+        cd $SETUP_CUSTOM_PACKAGE || quit "Failed to change directory to archlinux-setup/$SETUP_CUSTOM_PACKAGE"
+        sudo -u nobody makepkg --install --syncdeps --noconfirm || quit "Failed to create package $SETUP_CUSTOM_PACKAGE"
+        cd .. || quit "Failed to change directory to archlinux-setup"
+    done
+}
+if [[ "$SETUP_BOOT_MODE" = "UEFI-32" ]] || [[ "$SETUP_BOOT_MODE" = "UEFI-64" ]]; then
+    installpkg cgs-limine-uefi
+elif [[ "$SETUP_BOOT_MODE" = "BIOS" ]]; then
+    installpkg cgs-limine-bios
+else
+    quit "Invalid boot mode \"$SETUP_BOOT_MODE\""
+fi
+if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
+    installpkg cgs-slock cgs-dmenu cgs-st cgs-slstatus cgs-dwm
+fi
+if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
+    installpkg cgs-neovim-nightly
+fi
+EDITOR="vim -c \":$ | delete 1 | wq\"" visudo || quit "Failed to remove sudo priveleges to user \"nobody\""
+
+echo "----------------------------------------"
+export SETUP_USER="'$SETUP_USER'"
+echo "Creating user \"$SETUP_USER\"..."
+groupadd $SETUP_USER || quit "Failed to create group \"$SETUP_USER\""
+useradd -mg $SETUP_USER $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
+usermod --password $(openssl passwd -1 "'$SETUP_USER_PASSWORD'") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
+if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
+    installpkg cgs-xorg-user-cfg
+    echo "
+# Start the X server on login
+if [ -z \"\$DISPLAY\" ] && [ \"\$XDG_VTNR\" = 1 ]; then
+    startx
+fi
+" >>/home/$SETUP_USER/.bash_profile || quit "Failed to enable starting the X server upon login"
+fi
+
+echo "----------------------------------------"
+echo "Giving the user \"$SETUP_USER\" root privileges..."
+SETUP_SUDO_GROUP="'$SETUP_SUDO_GROUP'"
+echo "%$SETUP_SUDO_GROUP ALL=(ALL:ALL) ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to give sudo privileges to the \"$SETUP_SUDO_GROUP\" group"
+usermod -aG $SETUP_SUDO_GROUP $SETUP_USER || quit "Failed to give sudo privileges to user \"$SETUP_USER\""
+
 ' || quit "Failed operation while root was changed to $SETUP_DISK_ROOT_MOUNT"
-
-# installpkg() {
-#     for SETUP_CUSTOM_PACKAGE in "$@"
-#     do
-#         cd $SETUP_CUSTOM_PACKAGE || quit "Failed to change directory to archlinux-setup/$SETUP_CUSTOM_PACKAGE"
-#         sudo -u nobody makepkg --install --syncdeps --noconfirm || quit "Failed to create package $SETUP_CUSTOM_PACKAGE"
-#         cd .. || quit "Failed to change directory to archlinux-setup"
-#     done
-# }
-# if [[ "$SETUP_BOOT_MODE" = "UEFI-32" ]] || [[ "$SETUP_BOOT_MODE" = "UEFI-64" ]]; then
-#     installpkg cgs-limine-uefi
-# elif [[ "$SETUP_BOOT_MODE" = "BIOS" ]]; then
-#     installpkg cgs-limine-bios
-# else
-#     quit "Invalid boot mode \"$SETUP_BOOT_MODE\""
-# fi
-# if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
-#     installpkg cgs-slock cgs-dmenu cgs-st cgs-slstatus cgs-dwm
-# fi
-# if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
-#     installpkg cgs-neovim-nightly
-# fi
-# EDITOR="vim -c \':$ | delete 1 | wq\'" visudo || quit "Failed to remove sudo priveleges to user \"nobody\""
-
-# echo "----------------------------------------"
-# export SETUP_USER="'$SETUP_USER'"
-# echo "Creating user \"$SETUP_USER\"..."
-# groupadd $SETUP_USER || quit "Failed to create group \"$SETUP_USER\""
-# useradd -mg $SETUP_USER $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
-# usermod --password $(openssl passwd -1 "'$SETUP_USER_PASSWORD'") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
-# if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
-#     installpkg cgs-xorg-user-cfg
-#     echo "
-# # Start the X server on login
-# if [ -z \"\$DISPLAY\" ] && [ \"\$XDG_VTNR\" = 1 ]; then
-#     startx
-# fi
-# " >>/home/$SETUP_USER/.bash_profile || quit "Failed to enable starting the X server upon login"
-# fi
-
-# echo "----------------------------------------"
-# echo "Giving the user \"$SETUP_USER\" root privileges..."
-# SETUP_SUDO_GROUP="'$SETUP_SUDO_GROUP'"
-# echo "%$SETUP_SUDO_GROUP ALL=(ALL:ALL) ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to give sudo privileges to the \"$SETUP_SUDO_GROUP\" group"
-# usermod -aG $SETUP_SUDO_GROUP $SETUP_USER || quit "Failed to give sudo privileges to user \"$SETUP_USER\""
 
 # echo "----------------------------------------"
 # echo "Adding custom startup scripts..."

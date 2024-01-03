@@ -5,30 +5,31 @@ pkgdesc="Vim-fork focused on extensibility and usability"
 arch=("any")
 url="https://neovim.io"
 license=("custom:neovim")
+options=("zipman")
 depends=("cmake" "unzip" "ninja" "curl")
-conflicts=("$pkgname")
 source=("git+https://github.com/neovim/neovim.git")
 md5sums=("SKIP")
 
 pkgver() {
-    cd neovim
+    cd $srcdir/neovim
     git checkout nightly
     git log -1 --date=format:"%Y%m%d" --format="%ad"
 }
 
 build() {
-    cd neovim
+    cd $srcdir/neovim
     make CMAKE_BUILD_TYPE=RelWithDebInfo
 }
 
 check() {
-    cd neovim/build
-    bin/nvim --version
-    bin/nvim --headless -u NONE -i NONE -c ":quit"
+    cd $srcdir/neovim
+    build/bin/nvim --version
+    build/bin/nvim --headless -u NONE -i NONE -c ":quit"
 }
 
 package() {
-    cd neovim
-    make DESTDIR="$pkgdir/" install
-    install -Dm644 LICENSE.txt "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    cd $srcdir/neovim
+    make PREFIX="/usr" DESTDIR="$pkgdir/" install
+    install -Dm644 LICENSE.txt "$pkgdir/usr/share/licenses/$pkgname/"
+    install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/"
 }
