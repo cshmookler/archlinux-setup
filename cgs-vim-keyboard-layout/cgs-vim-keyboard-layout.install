@@ -1,0 +1,7 @@
+post_install() {
+    systemctl enable vim-keyboard-layout
+}
+
+pre_remove() {
+    systemctl disable vim-keyboard-layout
+}

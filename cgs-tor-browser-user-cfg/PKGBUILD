@@ -1,0 +1,16 @@
+preprocess() {
+    bash -uec "echo \"$(cat $1)\""
+}
+
+pkgname="cgs-tor-browser-user-cfg"
+pkgver=20240104
+pkgrel=1
+pkgdesc="Configuration for \"de-torifying\" the Tor browser"
+arch=("any")
+depends=("torbrowser-launcher" "gtkmm3" "alsa-lib")
+
+package() {
+    SETUP_USERJS_DIR=$pkgdir/home/$USER/.local/share/torbrowser/tbb/x86_64/tor-browser/Browser/TorBrowser/Data/Browser/profile.default/
+    mkdir -p $SETUP_USERJS_DIR
+    preprocess $startdir/user.js $SETUP_USERJS_DIR
+}
