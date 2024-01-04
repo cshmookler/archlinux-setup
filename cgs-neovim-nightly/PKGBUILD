@@ -30,6 +30,8 @@ check() {
 package() {
     cd $srcdir/neovim
     make DESTDIR="$pkgdir/" install
+    ln -s $pkgdir/usr/bin/nvim $pkgdir/usr/bin/vim
+    ln -s $pkrdir/usr/bin/nvim $pkgdir/usr/bin/vi
     mkdir -p "$pkgdir/usr/share/licenses/$pkgname/"
     mkdir -p "$pkgdir/usr/share/doc/$pkgname/"
     install -Dm644 LICENSE.txt "$pkgdir/usr/share/licenses/$pkgname/"

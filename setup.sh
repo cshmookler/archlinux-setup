@@ -295,7 +295,7 @@ fi
 if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
     installpkg cgs-neovim-nightly
 fi
-EDITOR="vim -c \":$ | delete 1 | wq\"" visudo || quit "Failed to remove sudo priveleges to user \"nobody\""
+EDITOR="vim -c \":$ | delete 1 | wq\!\"" visudo || quit "Failed to remove sudo priveleges to user \"nobody\""
 
 echo "----------------------------------------"
 export SETUP_USER="'$SETUP_USER'"
