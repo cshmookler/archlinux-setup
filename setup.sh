@@ -274,26 +274,27 @@ cd archlinux-setup || quit "Failed to change directory to archlinux-setup"
 chown -R nobody:nobody . || quit "Failed to change directory permissions of archlinux-setup to nobody:nobody"
 echo "%nobody ALL=(ALL:ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to temporarily give sudo privileges to user \"nobody\""
 
-installpkg() {
-    for SETUP_CUSTOM_PACKAGE in "$@"
+SETUP_INSTALLPKG_FUNC="installpkg() {
+    for SETUP_CUSTOM_PACKAGE in \"$@\"
     do
-        cd $SETUP_CUSTOM_PACKAGE || quit "Failed to change directory to archlinux-setup/$SETUP_CUSTOM_PACKAGE"
-        sudo -u nobody makepkg --install --syncdeps --noconfirm || quit "Failed to create package $SETUP_CUSTOM_PACKAGE"
-        cd .. || quit "Failed to change directory to archlinux-setup"
+        cd $SETUP_CUSTOM_PACKAGE || quit \"Failed to change directory to archlinux-setup/$SETUP_CUSTOM_PACKAGE\"
+        sudo -u nobody makepkg --install --syncdeps --noconfirm || quit \"Failed to create package $SETUP_CUSTOM_PACKAGE\"
+        cd .. || quit \"Failed to change directory to archlinux-setup\"
     done
-}
+}"
+eval "$SETUP_INSTALLPKG_FUNC" || quit "Failed to source the package installation script"
 if [[ "$SETUP_BOOT_MODE" = "UEFI-32" ]] || [[ "$SETUP_BOOT_MODE" = "UEFI-64" ]]; then
-    installpkg cgs-limine-uefi
+    installpkg cgs-limine-uefi || quit "Failed to install cgs-limine-uefi"
 elif [[ "$SETUP_BOOT_MODE" = "BIOS" ]]; then
-    installpkg cgs-limine-bios
+    installpkg cgs-limine-bios || quit "Failed to install cgs-limine-bios"
 else
     quit "Invalid boot mode \"$SETUP_BOOT_MODE\""
 fi
 if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
-    installpkg cgs-slock cgs-dmenu cgs-st cgs-slstatus cgs-dwm
+    installpkg cgs-slock cgs-dmenu cgs-st cgs-slstatus cgs-dwm || quit "Failed to install GUI programs"
 fi
 if [[ "'$SETUP_DEVELOPMENT_TOOLS'" = "true" ]]; then
-    installpkg cgs-neovim-nightly
+    installpkg cgs-neovim-nightly || quit "Failed to install development tools"
 fi
 EDITOR="vim -c \":$ | delete 1 | wq\!\"" visudo || quit "Failed to remove sudo priveleges to user \"nobody\""
 
@@ -304,7 +305,7 @@ groupadd $SETUP_USER || quit "Failed to create group \"$SETUP_USER\""
 useradd -mg $SETUP_USER $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
 usermod --password $(openssl passwd -1 "'$SETUP_USER_PASSWORD'") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
 if [[ "'$SETUP_HEADLESS'" = "false" ]]; then
-    installpkg cgs-xorg-user-cfg
+    sudo -u main bash -c "eval $SETUP_INSTALLPKG_FUNC ; installpkg cgs-xorg-user-cfg" || quit "Failed to install cgs-xorg-user-cfg"
     echo "
 # Start the X server on login
 if [ -z \"\$DISPLAY\" ] && [ \"\$XDG_VTNR\" = 1 ]; then
