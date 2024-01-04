@@ -1,5 +1,4 @@
 #!/bin/bash
-(
 
 greentext() {
     echo -e "\e[32;1m$1\e[0m"
@@ -237,11 +236,15 @@ genfstab -U $SETUP_DISK_ROOT_MOUNT >>$SETUP_DISK_ROOT_MOUNT"/etc/fstab" || quit 
 
 echo "----------------------------------------"
 echo "Downloading the post-pacstrap installation script..."
-curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/post-pacstrap-setup.sh >/mnt/tmp/setup.sh || quit "Failed to download the post-pacstrap installation script"
+curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/post-pacstrap-setup.sh >$SETUP_DISK_ROOT_MOUNT/setup.sh || quit "Failed to download the post-pacstrap installation script"
 
 echo "----------------------------------------"
 echo "Changing root to $SETUP_DISK_ROOT_MOUNT"
-arch-chroot $SETUP_DISK_ROOT_MOUNT /bin/bash /tmp/setup.sh || quit "Failed operation while root was changed to $SETUP_DISK_ROOT_MOUNT"
+arch-chroot $SETUP_DISK_ROOT_MOUNT /bin/bash /setup.sh || quit "Failed operation while root was changed to $SETUP_DISK_ROOT_MOUNT"
+
+echo "----------------------------------------"
+echo "Removing the post-pacstrap installation script..."
+rm $SETUP_DISK_ROOT_MOUNT/setup.sh || redtext "Failed to remove the psot-pacstrap installation script at $SETUP_DISK_ROOT_MOUNT/setup.sh"
 
 echo "----------------------------------------"
 echo "Unmounting all file systems on $SETUP_DISK_ROOT_MOUNT"
@@ -257,6 +260,3 @@ if test "$SETUP_RESTART_TIME" -ne "-1"; then
 else
     echo "Restart cancelled"
 fi
-
-)
-return $?

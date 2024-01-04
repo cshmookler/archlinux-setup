@@ -15,7 +15,7 @@ quit() {
 
 echo "----------------------------------------"
 echo "Setting time zone: $SETUP_TIME_ZONE"
-ln -sf $SETUP_DISK_ROOT_MOUNT/usr/share/zoneinfo/$SETUP_TIME_ZONE $SETUP_DISK_ROOT_MOUNT/etc/localtime || quit "Failed to set time zone: $SETUP_TIME_ZONE"
+ln -sf /usr/share/zoneinfo/$SETUP_TIME_ZONE /etc/localtime || quit "Failed to set time zone: $SETUP_TIME_ZONE"
 
 echo "----------------------------------------"
 echo "Setting the hardware clock..."
@@ -23,13 +23,13 @@ hwclock --systohc || quit "Failed to set the hardware clock"
 
 echo "----------------------------------------"
 echo "Generating locales..."
-echo "en_US.UTF-8 UTF-8" >>$SETUP_DISK_ROOT_MOUNT/etc/locale.gen || quit "Failed to set locales"
-echo "LANG=en_US.UTF-8" >$SETUP_DISK_ROOT_MOUNT/etc/locale.conf || quit "Failed to generate locale configuration file"
+echo "en_US.UTF-8 UTF-8" >>/etc/locale.gen || quit "Failed to set locales"
+echo "LANG=en_US.UTF-8" >/etc/locale.conf || quit "Failed to generate locale configuration file"
 locale-gen || quit "Failed to generate locales"
 
 echo "----------------------------------------"
 echo "Setting hostname: $SETUP_HOSTNAME"
-echo "$SETUP_HOSTNAME" >$SETUP_DISK_ROOT_MOUNT/etc/hostname || quit "Failed to set hostname: $SETUP_HOSTNAME"
+echo "$SETUP_HOSTNAME" >/etc/hostname || quit "Failed to set hostname: $SETUP_HOSTNAME"
 
 echo "----------------------------------------"
 echo "Enabling automatic network configuration..."

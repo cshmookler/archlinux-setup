@@ -28,10 +28,10 @@ export SETUP_RESTART_TIME=5             # The timed delay before restarting once
 
 > **Warning**: If the SETUP_DISK option is unset, the largest available disk is partitioned and formatted. This may result in data being overwritten. Run this script at your own risk!
 
-**3.** Download this script, make it executable, and run it as root.
+**3.** Download this script and run it as root with bash.
 
 ```bash
-curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/setup.sh && chmod +x setup.sh && ./setup.sh
+curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/setup.sh && bash setup.sh
 ```
 
 ## **TODO**
