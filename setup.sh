@@ -237,7 +237,7 @@ genfstab -U $SETUP_DISK_ROOT_MOUNT >>$SETUP_DISK_ROOT_MOUNT"/etc/fstab" || quit 
 
 echo "----------------------------------------"
 echo "Downloading the post-pacstrap installation script..."
-curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/post-pacstrap-setup.sh /mnt/tmp/setup.sh || quit "Failed to download the post-pacstrap installation script"
+curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/post-pacstrap-setup.sh >/mnt/tmp/setup.sh || quit "Failed to download the post-pacstrap installation script"
 
 echo "----------------------------------------"
 echo "Changing root to $SETUP_DISK_ROOT_MOUNT"
