@@ -110,7 +110,7 @@ if test -z "$SETUP_DISK"; then
     SETUP_DISK_SIZE=$SETUP_DISK_MIN_BYTES
     SETUP_LSBLK=$(lsblk -nrbp | grep --color=never " disk ")
     while read -r SETUP_DISK_CANDIDATE; do
-        SETUP_DISK_CANDIDATE_INDEXABLE=($SETUP_LSBLK)
+        read -a SETUP_DISK_CANDIDATE_INDEXABLE <<<$SETUP_LSBLK
         SETUP_DISK_CANDIDATE_INDEX=0
         SETUP_DISK_CANDIDATE_PATH=${SETUP_DISK_CANDIDATE_INDEXABLE[0]}
         SETUP_DISK_CANDIDATE_SIZE=${SETUP_DISK_CANDIDATE_INDEXABLE[3]}
@@ -237,7 +237,7 @@ genfstab -U $SETUP_DISK_ROOT_MOUNT >>$SETUP_DISK_ROOT_MOUNT"/etc/fstab" || quit 
 
 echo "----------------------------------------"
 echo "Downloading the post-pacstrap installation script..."
-curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/post-pacstrap-setup.sh /mnt/tmp/setup.sh || quit "Failed to download the post-pacstrap installation script"
+curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/post-pacstrap-setup.sh /mnt/tmp/setup.sh || quit "Failed to download the post-pacstrap installation script"
 
 echo "----------------------------------------"
 echo "Changing root to $SETUP_DISK_ROOT_MOUNT"
