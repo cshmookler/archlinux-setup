@@ -43,7 +43,9 @@ timer() {
 
 echo "----------------------------------------"
 echo "Sourcing the configuration file..."
-if ! source config.sh; then
+if source config.sh; then
+    export $(cut -d= -f1 config.sh)
+else
     yellowtext "No configuration file found. Downloading a template..."
     curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/config.sh || quit "Failed to download the configuration template file"
     yellowtext "Edit config.sh and source this script again to restart the installation"
