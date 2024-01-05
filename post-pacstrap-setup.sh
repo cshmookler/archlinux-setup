@@ -80,8 +80,11 @@ chown -R nobody:nobody . || quit "Failed to change directory permissions of arch
 echo "%nobody ALL=(ALL:ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to temporarily give sudo privileges to user \"nobody\""
 SETUP_INSTALLPKG_FUNC='installpkg() {
     cd "$1" || return 1
-    sudo -u nobody makepkg --install --syncdeps --noconfirm || cd .. ; return 2
-    cd .. || return 3
+    if ! sudo -u nobody makepkg --install --syncdeps --noconfirm; then
+        cd .. || return 2
+        return 3
+    fi
+    cd .. || return 4
 }'
 eval "$SETUP_INSTALLPKG_FUNC" || quit "Failed to source the package installation script"
 if test "$SETUP_BOOT_MODE" = "UEFI-32" -o "$SETUP_BOOT_MODE" = "UEFI-64"; then
@@ -103,10 +106,10 @@ fi
 if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
     if ! installpkg cgs-neovim-nightly; then
         redtext "Failed to install cgs-neovim-nightly"
-        pacman -Sy vim
     fi
-else
-    pacman -Sy vim
+fi
+if ! test -f /bin/vim; then
+    pacman -Sy --noconfirm vim
 fi
 EDITOR="vim -c \":$ | delete 1 | wq\!\"" visudo || quit "Failed to remove sudo privileges to user \"nobody\""
 
@@ -138,7 +141,9 @@ fi
 
 echo "----------------------------------------"
 echo "Giving the user \"$SETUP_USER\" root privileges..."
-echo "%$SETUP_SUDO_GROUP ALL=(ALL:ALL) ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to give sudo privileges to the \"$SETUP_SUDO_GROUP\" group"
+echo "
+## Allow members of group $SETUP_SUDO_GROUP to execute any command
+%$SETUP_SUDO_GROUP ALL=(ALL:ALL) ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to give sudo privileges to the \"$SETUP_SUDO_GROUP\" group"
 usermod -aG $SETUP_SUDO_GROUP $SETUP_USER || quit "Failed to give sudo privileges to user \"$SETUP_USER\""
 
 echo "----------------------------------------"
