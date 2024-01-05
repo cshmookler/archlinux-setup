@@ -76,7 +76,7 @@ chown -R nobody:nobody . || quit "Failed to change directory permissions of arch
 echo "%nobody ALL=(ALL:ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to temporarily give sudo privileges to user \"nobody\""
 SETUP_INSTALLPKG_FUNC='installpkg() {
     cd "$1" || return 1
-    sudo -u nobody makepkg --install --syncdeps --noconfirm || return 2
+    sudo -u nobody makepkg --install --syncdeps --noconfirm || cd .. ; return 2
     cd .. || return 3
 }'
 eval "$SETUP_INSTALLPKG_FUNC" || quit "Failed to source the package installation script"
@@ -96,10 +96,15 @@ if test "$SETUP_HEADLESS" = "false"; then
     installpkg cgs-slstatus || redtext "Failed to install cgs-slstatus"
     installpkg cgs-dwm || redtext "Failed to install cgs-dwm"
 fi
-if test "$SETUP_DEVELOPMENT_TOOLS" = "true" ]]; then
-    installpkg cgs-neovim-nightly || redtext "Failed to install cgs-neovim-nightly"
+if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
+    if ! installpkg cgs-neovim-nightly; then
+        redtext "Failed to install cgs-neovim-nightly"
+        pacman -Sy vim
+    fi
+else
+    pacman -Sy vim
 fi
-EDITOR="vim -c \":$ | delete 1 | wq\!\"" visudo || quit "Failed to remove sudo priveleges to user \"nobody\""
+EDITOR="vim -c \":$ | delete 1 | wq\!\"" visudo || quit "Failed to remove sudo privileges to user \"nobody\""
 
 echo "----------------------------------------"
 echo "Creating user \"$SETUP_USER\"..."
