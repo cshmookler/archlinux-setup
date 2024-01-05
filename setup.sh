@@ -48,53 +48,53 @@ fi
 echo "----------------------------------------"
 echo "Configuring options..."
 if test -z "$SETUP_PING"; then
-    SETUP_PING=1.1.1.1
+    export SETUP_PING=1.1.1.1
 fi
 if test -z "$SETUP_DISK_MIN_BYTES"; then
-    SETUP_DISK_MIN_BYTES=8000000000
+    export SETUP_DISK_MIN_BYTES=8000000000
 fi
 if test -z "$SETUP_HEADLESS"; then
-    SETUP_HEADLESS=false
+    export SETUP_HEADLESS=false
 fi
 if test -z "$SETUP_DEVELOPMENT_TOOLS"; then
-    SETUP_DEVELOPMENT_TOOLS=true
+    export SETUP_DEVELOPMENT_TOOLS=true
 fi
 if test -z "$SETUP_EXTRA_PACKAGES"; then
-    SETUP_EXTRA_PACKAGES=""
+    export SETUP_EXTRA_PACKAGES=""
 fi
-# SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion man-db man-pages texinfo zip unzip curl git python htop lynx ufw transmission-cli openssh openvpn arch-wiki-lite"
-SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager bash bash-completion man-db man-pages texinfo curl git zip unzip python htop lynx ufw openssh"
+# export SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion man-db man-pages texinfo zip unzip curl git python htop lynx ufw transmission-cli openssh openvpn arch-wiki-lite"
+export SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager bash bash-completion man-db man-pages texinfo curl git zip unzip python htop lynx ufw openssh"
 if test "$SETUP_HEADLESS" = "false"; then
-    # SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock physlock ttf-hack-nerd noto-fonts-emoji torbrowser-launcher gtkmm3 alsa-lib vlc pulseaudio libreoffice-fresh xreader $SETUP_EXTRA_PACKAGES"
-    SETUP_EXTRA_PACKAGES="$SETUP_EXTRA_PACKAGES"
+    # export SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock physlock ttf-hack-nerd noto-fonts-emoji torbrowser-launcher gtkmm3 alsa-lib vlc pulseaudio libreoffice-fresh xreader $SETUP_EXTRA_PACKAGES"
+    export SETUP_EXTRA_PACKAGES="$SETUP_EXTRA_PACKAGES"
 fi
 if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
-    # SETUP_EXTRA_PACKAGES="clang python-black cmake ninja lua-language-server bash-language-server aspell aspell-en $SETUP_EXTRA_PACKAGES"
-    SETUP_EXTRA_PACKAGES="$SETUP_EXTRA_PACKAGES"
+    # export SETUP_EXTRA_PACKAGES="clang python-black cmake ninja lua-language-server bash-language-server aspell aspell-en $SETUP_EXTRA_PACKAGES"
+    export SETUP_EXTRA_PACKAGES="$SETUP_EXTRA_PACKAGES"
 fi
 if test -z "$SETUP_TIME_ZONE"; then
-    SETUP_TIME_ZONE="America/Denver"
+    export SETUP_TIME_ZONE="America/Denver"
 fi
 if test -z "$SETUP_HOSTNAME"; then
-    SETUP_HOSTNAME="arch"
+    export SETUP_HOSTNAME="arch"
 fi
 if test -z "$SETUP_ROOT_PASSWORD"; then
-    SETUP_ROOT_PASSWORD="arch"
+    export SETUP_ROOT_PASSWORD="arch"
 fi
 if test -z "$SETUP_USER"; then
-    SETUP_USER="main"
+    export SETUP_USER="main"
 fi
 if test -z "$SETUP_USER_PASSWORD"; then
-    SETUP_USER_PASSWORD="main"
+    export SETUP_USER_PASSWORD="main"
 fi
 if test -z "$SETUP_SUDO_GROUP"; then
-    SETUP_SUDO_GROUP="wheel"
+    export SETUP_SUDO_GROUP="wheel"
 fi
 if test -z "$SETUP_SSH_PORT"; then
-    SETUP_SSH_PORT=22
+    export SETUP_SSH_PORT=22
 fi
 if test -z "$SETUP_RESTART_TIME"; then
-    SETUP_RESTART_TIME=5
+    export SETUP_RESTART_TIME=5
 fi
 
 echo "----------------------------------------"
@@ -119,8 +119,8 @@ if test -z "$SETUP_DISK"; then
             continue
         fi
         if test $SETUP_DISK_CANDIDATE_SIZE -gt $SETUP_DISK_SIZE; then
-            SETUP_DISK_SIZE=$SETUP_DISK_CANDIDATE_SIZE
-            SETUP_DISK=$SETUP_DISK_CANDIDATE_PATH
+            export SETUP_DISK_SIZE=$SETUP_DISK_CANDIDATE_SIZE
+            export SETUP_DISK=$SETUP_DISK_CANDIDATE_PATH
         fi
     done <<<"$SETUP_LSBLK"
     if test -z "$SETUP_DISK"; then
