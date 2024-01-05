@@ -1,5 +1,10 @@
 #!/bin/bash
 
+preprocess() {
+    # Unbounded variables are ignored
+    bash -ec "echo \"$(cat $1)\""
+}
+
 greentext() {
     echo -e "\e[32;1m$1\e[0m"
 }
@@ -239,12 +244,18 @@ echo "Downloading the post-pacstrap installation script..."
 curl https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/post-pacstrap-setup.sh >$SETUP_DISK_ROOT_MOUNT/setup.sh || quit "Failed to download the post-pacstrap installation script"
 
 echo "----------------------------------------"
+echo "Downloading the environment configuration script..."
+curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/env.sh || quit "Failed to download the environment configuration script"
+preprocess env.sh >$SETUP_DISK_ROOT_MOUNT/env.sh
+
+echo "----------------------------------------"
 echo "Changing root to $SETUP_DISK_ROOT_MOUNT"
 arch-chroot $SETUP_DISK_ROOT_MOUNT /bin/bash /setup.sh || quit "Failed operation while root was changed to $SETUP_DISK_ROOT_MOUNT"
 
 echo "----------------------------------------"
-echo "Removing the post-pacstrap installation script..."
-rm $SETUP_DISK_ROOT_MOUNT/setup.sh || redtext "Failed to remove the psot-pacstrap installation script at $SETUP_DISK_ROOT_MOUNT/setup.sh"
+echo "Removing the post-pacstrap installation and environment configuration scripts..."
+rm $SETUP_DISK_ROOT_MOUNT/setup.sh || redtext "Failed to remove the post-pacstrap installation script at $SETUP_DISK_ROOT_MOUNT/setup.sh"
+rm $SETUP_DISK_ROOT_MOUNT/env.sh || redtext "Failed to remove the environmetn configuration script at $SETUP_DISK_ROOT_MOUNT/env.sh"
 
 echo "----------------------------------------"
 echo "Unmounting all file systems on $SETUP_DISK_ROOT_MOUNT"

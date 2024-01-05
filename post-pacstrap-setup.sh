@@ -14,6 +14,10 @@ quit() {
 }
 
 echo "----------------------------------------"
+echo "Sourcing the environment configuration script..."
+source /env.sh || quit "Failed to source the environment configuration script at /env.sh"
+
+echo "----------------------------------------"
 echo "Setting time zone: $SETUP_TIME_ZONE"
 ln -sf /usr/share/zoneinfo/$SETUP_TIME_ZONE /etc/localtime || quit "Failed to set time zone: $SETUP_TIME_ZONE"
 
