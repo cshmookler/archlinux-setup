@@ -101,7 +101,7 @@ if test -z "$SETUP_SSH_PORT"; then
     export SETUP_SSH_PORT=22
 fi
 if test -z "$SETUP_RESTART_TIME"; then
-    export SETUP_RESTART_TIME=5
+    export SETUP_RESTART_TIME=10
 fi
 
 echo "----------------------------------------"
@@ -152,9 +152,14 @@ non-root user password -> $SETUP_USER_PASSWORD
             sudo group -> $SETUP_SUDO_GROUP
               ssh port -> $SETUP_SSH_PORT
 "
-redtext "Type Ctrl+C to cancel"
-timer 30 "Beginning installation"
-echo ""
+while true; do
+    read -p "Continue installation? (Y/n): " response
+    case $response in
+        [Yy]|[Yy][Ee][Ss]|"") break;;
+        [Nn]|[Nn][Oo]) redtext "Installation cancelled"; exit 1;;
+        *) yellowtext "Enter yes or no"; continue;;
+    esac
+done
 
 echo "----------------------------------------"
 echo "Partitioning, formatting, and mounting $SETUP_DISK"

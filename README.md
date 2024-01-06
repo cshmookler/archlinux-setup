@@ -23,7 +23,7 @@ export SETUP_USER="main"                # The name of the non-root account
 export SETUP_USER_PASSWORD="main"       # The password for the non-root account
 export SETUP_SUDO_GROUP="wheel"         # The name of the group with sudo privileges
 export SETUP_SSH_PORT=22                # The port for ssh to listen on
-export SETUP_RESTART_TIME=5             # The timed delay before restarting once installation is complete (-1 cancels the restart)
+export SETUP_RESTART_TIME=10            # The timed delay before restarting once installation is complete (-1 cancels the restart)
 ```
 
 > **Warning**: If the SETUP_DISK option is unset, the largest available disk is partitioned and formatted. This may result in data being overwritten. Run this script at your own risk!
