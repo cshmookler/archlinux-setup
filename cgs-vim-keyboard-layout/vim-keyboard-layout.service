@@ -3,7 +3,7 @@ Description=Loads the vim keyboard layout on startup
 After=multi-user.target
 
 [Service]
-ExecStart=/bin/bash -c "loadkeys $SETUP_VIM_KEYBOARD_LAYOUT_CHROOT_DIR/us-vim.kmap"
+ExecStart=/bin/bash -c 'loadkeys "$SETUP_VIM_KEYBOARD_LAYOUT_CHROOT_DIR"/us-vim.kmap'
 
 [Install]
 WantedBy=graphical.target

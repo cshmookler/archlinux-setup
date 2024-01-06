@@ -1,7 +1,3 @@
-preprocess() {
-    bash -uec "echo \"$(cat $1)\""
-}
-
 pkgname="cgs-vim-keyboard-layout"
 pkgver=20240104
 pkgrel=1
@@ -20,10 +16,10 @@ package() {
     SETUP_VIM_KEYBOARD_LAYOUT_CHROOT_DIR=/etc/vim_keyboard_layout/
     SETUP_VIM_KEYBOARD_LAYOUT_DIR="$pkgdir/$SETUP_VIM_KEYBOARD_LAYOUT_CHROOT_DIR"
     mkdir -p $SETUP_VIM_KEYBOARD_LAYOUT_DIR
-    cp $srcdir/vim_keyboard_layout/tty/us.kmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/us.kmap
-    cp $srcdir/vim_keyboard_layout/tty/us-vim.kmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/us-vim.kmap
-    cp $srcdir/vim_keyboard_layout/x11/xmodmap >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/xmodmap
-    cp $srcdir/vim_keyboard_layout/x11/xmodmap-vim >$SETUP_VIM_KEYBOARD_LAYOUT_DIR/xmodmap-vim
+    cp $srcdir/vim_keyboard_layout/tty/us.kmap $SETUP_VIM_KEYBOARD_LAYOUT_DIR
+    cp $srcdir/vim_keyboard_layout/tty/us-vim.kmap $SETUP_VIM_KEYBOARD_LAYOUT_DIR
+    cp $srcdir/vim_keyboard_layout/x11/xmodmap $SETUP_VIM_KEYBOARD_LAYOUT_DIR
+    cp $srcdir/vim_keyboard_layout/x11/xmodmap-vim $SETUP_VIM_KEYBOARD_LAYOUT_DIR
     mkdir -p $pkgdir/etc/systemd/system/
-    preprocess $startdir/vim-keyboard-layout.service >$pkgdir/etc/systemd/system/vim-keyboard-layout.service
+    bash -uec "export SETUP_VIM_KEYBOARD_LAYOUT_CHROOT_DIR=$SETUP_VIM_KEYBOARD_LAYOUT_CHROOT_DIR; echo \"$(cat $startdir/vim-keyboard-layout.service)\"" >$pkgdir/etc/systemd/system/vim-keyboard-layout.service
 }
