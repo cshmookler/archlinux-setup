@@ -6,10 +6,10 @@ arch=("any")
 depends=($(pacman -Sgq xorg))
 
 package() {
-    Xorg :0 -configure
+    sudo Xorg :0 -configure
     SETUP_XORG_CONF=$pkgdir/etc/X11/xorg.conf.d/xorg.conf
     mkdir -p $(dirname $SETUP_XORG_CONF)
-    mv /root/xorg.conf.new $SETUP_XORG_CONF
+    sudo mv /root/xorg.conf.new $SETUP_XORG_CONF
     echo "Section \"ServerFlags\"
         Option \"DontVTSwitch\" \"True\"
         Option \"DontZap\" \"True\"

@@ -114,8 +114,16 @@ fi
 EDITOR="vim -c \":$ | delete 1 | wq\!\"" visudo || quit "Failed to remove sudo privileges to user \"nobody\""
 
 echo "----------------------------------------"
-echo "Creating user \"$SETUP_USER\"..."
+echo "Creating sudo group \"$SETUP_SUDO_GROUP\""
 groupadd $SETUP_USER || quit "Failed to create group \"$SETUP_USER\""
+
+echo "----------------------------------------"
+echo "Switching ssh to port $SETUP_SSH_PORT and only allowing remote login by users within the group \"$SETUP_SUDO_GROUP\""
+echo "AllowGroups $SETUP_SUDO_GROUP
+Port $SETUP_SSH_PORT" >/etc/ssh/sshd_config.d/20-access.conf
+
+echo "----------------------------------------"
+echo "Creating user \"$SETUP_USER\"..."
 useradd -mg $SETUP_USER $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
 usermod --password $(openssl passwd -1 "$SETUP_USER_PASSWORD") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
 if test "$SETUP_HEADLESS" = "false"; then

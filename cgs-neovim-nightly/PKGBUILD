@@ -7,6 +7,7 @@ url="https://neovim.io"
 license=("custom:neovim")
 options=("zipman")
 depends=("cmake" "unzip" "ninja" "curl")
+conflicts=("vi" "vim")
 source=("git+https://github.com/neovim/neovim.git")
 md5sums=("SKIP")
 

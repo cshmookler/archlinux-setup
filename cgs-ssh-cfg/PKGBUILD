@@ -1,7 +1,3 @@
-preprocess() {
-    bash -uec "echo \"$(cat $1)\""
-}
-
 pkgname="cgs-ssh-cfg"
 pkgver=20240104
 pkgrel=1
@@ -12,5 +8,5 @@ depends=("openssh")
 package() {
     SETUP_SSH_CONFIG=$pkgdir/etc/ssh/sshd_config.d/10-secure.conf
     mkdir -p $(dirname $SETUP_SSH_CONFIG)
-    preprocess $startdir/secure-ssh.conf $SETUP_SSH_CONFIG
+    cp $startdir/secure-ssh.conf $SETUP_SSH_CONFIG
 }
