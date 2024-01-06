@@ -127,8 +127,11 @@ echo "Creating user \"$SETUP_USER\"..."
 useradd -mg $SETUP_USER $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
 usermod --password $(openssl passwd -1 "$SETUP_USER_PASSWORD") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
 if test "$SETUP_HEADLESS" = "false"; then
-    sudo -u main bash -c 'eval '"$SETUP_INSTALLPKG_FUNC"' ; installpkg cgs-xorg-user-cfg ; exit $?' || redtext "Failed to install cgs-xorg-user-cfg"
-    sudo -u main bash -c "eval $SETUP_INSTALLPKG_FUNC ; installpkg cgs-tor-browser-user-cfg ; exit '$?'" || redtext "Failed to install cgs-tor-browser-user-cfg"
+    echo "%$SETUP_USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to temporarily give sudo privileges to user \"$SETUP_USER\""
+    chown -R $SETUP_USER:$SETUP_USER . || quit "Failed to change directory permissions of archlinux-setup to $SETUP_USER:$SETUP_USER"
+    sudo -u $SETUP_USER bash -c "eval \"$SETUP_INSTALLPKG_FUNC\"; installpkg cgs-xorg-user-cfg ; exit "'$?' || redtext "Failed to install cgs-xorg-user-cfg"
+    sudo -u $SETUP_USER bash -c "eval \"$SETUP_INSTALLPKG_FUNC\"; installpkg cgs-tor-browser-user-cfg ; exit "'$?' || redtext "Failed to install cgs-tor-browser-user-cfg"
+    EDITOR="vim -c \":$ | delete 1 | wq\!\"" visudo || quit "Failed to remove sudo privileges to user \"$SETUP_USER\""
     echo '
 # Start the X server on login
 if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" = 1 ]; then
