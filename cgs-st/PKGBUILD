@@ -13,6 +13,7 @@ md5sums=("SKIP")
 prepare() {
     cd $srcdir/st
     patch <$startdir/config.def.h.patch
+    patch <$startdir/Makefile.patch
 }
 
 pkgver() {

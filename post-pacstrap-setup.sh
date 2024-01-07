@@ -112,7 +112,7 @@ fi
 if ! test -f /bin/vim; then
     pacman -Sy --noconfirm vim
 fi
-EDITOR="vim -c \":$ | delete 1 | wq\!\"" visudo || quit "Failed to remove sudo privileges to user \"nobody\""
+EDITOR="sed -i '$ d'" visudo || quit "Failed to remove sudo privileges from user \"nobody\""
 
 echo "----------------------------------------"
 echo "Switching ssh to port $SETUP_SSH_PORT and only allowing remote login by users within the group \"$SETUP_SUDO_GROUP\""
@@ -132,7 +132,7 @@ if test "$SETUP_HEADLESS" = "false"; then
     chown -R $SETUP_USER:$SETUP_USER . || quit "Failed to change directory permissions of archlinux-setup to $SETUP_USER:$SETUP_USER"
     installpkg $SETUP_USER cgs-xorg-user-cfg || redtext "Failed to install cgs-xorg-user-cfg"
     installpkg $SETUP_USER cgs-tor-browser-user-cfg || redtext "Failed to install cgs-tor-browser-user-cfg"
-    EDITOR="vim -c \":$ | delete 1 | wq\!\"" visudo || quit "Failed to remove sudo privileges to user \"$SETUP_USER\""
+    EDITOR="sed -i '$ d'" visudo || quit "Failed to remove sudo privileges to user \"$SETUP_USER\""
     echo '
 # Start the X server on login
 if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" = 1 ]; then
