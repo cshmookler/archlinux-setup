@@ -79,8 +79,8 @@ cd archlinux-setup || quit "Failed to change directory to archlinux-setup"
 chown -R nobody:nobody . || quit "Failed to change directory permissions of archlinux-setup to nobody:nobody"
 echo "%nobody ALL=(ALL:ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to temporarily give sudo privileges to user \"nobody\""
 SETUP_INSTALLPKG_FUNC='installpkg() {
-    cd "$1" || return 1
-    if ! sudo -u nobody makepkg --install --syncdeps --noconfirm; then
+    cd "$2" || return 1
+    if ! sudo -u "$1" makepkg --install --syncdeps --noconfirm; then
         cd .. || return 2
         return 3
     fi
@@ -88,23 +88,24 @@ SETUP_INSTALLPKG_FUNC='installpkg() {
 }'
 eval "$SETUP_INSTALLPKG_FUNC" || quit "Failed to source the package installation script"
 if test "$SETUP_BOOT_MODE" = "UEFI-32" -o "$SETUP_BOOT_MODE" = "UEFI-64"; then
-    installpkg cgs-limine-uefi || quit "Failed to install cgs-limine-uefi"
+    installpkg nobody cgs-limine-uefi || quit "Failed to install cgs-limine-uefi"
 elif test "$SETUP_BOOT_MODE" = "BIOS"; then
-    installpkg cgs-limine-bios || quit "Failed to install cgs-limine-bios"
+    installpkg nobody cgs-limine-bios || quit "Failed to install cgs-limine-bios"
 else
     quit "Invalid boot mode \"$SETUP_BOOT_MODE\""
 fi
-installpkg cgs-vim-keyboard-layout || redtext "Failed to install cgs-vim-keyboard-layout"
-installpkg cgs-ssh-cfg || redtext "Failed to install cgs-ssh-cfg"
+installpkg nobody cgs-vim-keyboard-layout || redtext "Failed to install cgs-vim-keyboard-layout"
+installpkg nobody cgs-ssh-cfg || redtext "Failed to install cgs-ssh-cfg"
 if test "$SETUP_HEADLESS" = "false"; then
-    installpkg cgs-xorg-cfg || redtext "Failed to install cgs-xorg-cfg"
-    installpkg cgs-slock || redtext "Failed to install cgs-slock"
-    installpkg cgs-st || redtext "Failed to install cgs-st"
-    installpkg cgs-slstatus || redtext "Failed to install cgs-slstatus"
-    installpkg cgs-dwm || redtext "Failed to install cgs-dwm"
+    installpkg nobody cgs-xorg-cfg || redtext "Failed to install cgs-xorg-cfg"
+    installpkg nobody cgs-slock || redtext "Failed to install cgs-slock"
+    installpkg nobody cgs-st || redtext "Failed to install cgs-st"
+    installpkg nobody cgs-slstatus || redtext "Failed to install cgs-slstatus"
+    installpkg nobody cgs-dmenu || redtext "Failed to install cgs-dmenu"
+    installpkg nobody cgs-dwm || redtext "Failed to install cgs-dwm"
 fi
 if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
-    if ! installpkg cgs-neovim-nightly; then
+    if ! installpkg nobody cgs-neovim-nightly; then
         redtext "Failed to install cgs-neovim-nightly"
     fi
 fi
@@ -114,23 +115,23 @@ fi
 EDITOR="vim -c \":$ | delete 1 | wq\!\"" visudo || quit "Failed to remove sudo privileges to user \"nobody\""
 
 echo "----------------------------------------"
-echo "Creating sudo group \"$SETUP_SUDO_GROUP\""
-groupadd $SETUP_SUDO_GROUP || quit "Failed to create group \"$SETUP_SUDO_GROUP\""
-
-echo "----------------------------------------"
 echo "Switching ssh to port $SETUP_SSH_PORT and only allowing remote login by users within the group \"$SETUP_SUDO_GROUP\""
 echo "AllowGroups $SETUP_SUDO_GROUP
 Port $SETUP_SSH_PORT" >/etc/ssh/sshd_config.d/20-access.conf
 
 echo "----------------------------------------"
+echo "Creating sudo group \"$SETUP_SUDO_GROUP\""
+groupadd -f $SETUP_SUDO_GROUP || quit "Failed to create group \"$SETUP_SUDO_GROUP\""
+
+echo "----------------------------------------"
 echo "Creating user \"$SETUP_USER\"..."
-useradd -mg $SETUP_USER $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
+useradd -mU $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
 usermod --password $(openssl passwd -1 "$SETUP_USER_PASSWORD") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
 if test "$SETUP_HEADLESS" = "false"; then
     echo "%$SETUP_USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to temporarily give sudo privileges to user \"$SETUP_USER\""
     chown -R $SETUP_USER:$SETUP_USER . || quit "Failed to change directory permissions of archlinux-setup to $SETUP_USER:$SETUP_USER"
-    sudo -u $SETUP_USER bash -c "eval \"$SETUP_INSTALLPKG_FUNC\"; installpkg cgs-xorg-user-cfg ; exit "'$?' || redtext "Failed to install cgs-xorg-user-cfg"
-    sudo -u $SETUP_USER bash -c "eval \"$SETUP_INSTALLPKG_FUNC\"; installpkg cgs-tor-browser-user-cfg ; exit "'$?' || redtext "Failed to install cgs-tor-browser-user-cfg"
+    installpkg $SETUP_USER cgs-xorg-user-cfg || redtext "Failed to install cgs-xorg-user-cfg"
+    installpkg $SETUP_USER cgs-tor-browser-user-cfg || redtext "Failed to install cgs-tor-browser-user-cfg"
     EDITOR="vim -c \":$ | delete 1 | wq\!\"" visudo || quit "Failed to remove sudo privileges to user \"$SETUP_USER\""
     echo '
 # Start the X server on login
