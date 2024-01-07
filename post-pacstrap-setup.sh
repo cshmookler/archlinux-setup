@@ -115,7 +115,7 @@ EDITOR="vim -c \":$ | delete 1 | wq\!\"" visudo || quit "Failed to remove sudo p
 
 echo "----------------------------------------"
 echo "Creating sudo group \"$SETUP_SUDO_GROUP\""
-groupadd $SETUP_USER || quit "Failed to create group \"$SETUP_USER\""
+groupadd $SETUP_SUDO_GROUP || quit "Failed to create group \"$SETUP_SUDO_GROUP\""
 
 echo "----------------------------------------"
 echo "Switching ssh to port $SETUP_SSH_PORT and only allowing remote login by users within the group \"$SETUP_SUDO_GROUP\""

@@ -14,5 +14,5 @@ package() {
         Option \"DontVTSwitch\" \"True\"
         Option \"DontZap\" \"True\"
 EndSection
-" >>$SETUP_XORG_CONF
+" | sudo tee -a $SETUP_XORG_CONF
 }

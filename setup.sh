@@ -181,6 +181,26 @@ if ! test -f /sys/firmware/efi/fw_platform_size; then
         echo       # reserve the rest of the disk
         echo w     # write changes
     ) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
+    SETUP_DISK_SIZE=$SETUP_DISK_MIN_BYTES
+    SETUP_LSBLK=$(lsblk -nrbp | grep --color=never " disk ")
+    while read -r SETUP_DISK_CANDIDATE; do
+        read -a SETUP_DISK_CANDIDATE_INDEXABLE <<<$SETUP_LSBLK
+        SETUP_DISK_CANDIDATE_INDEX=0
+        SETUP_DISK_CANDIDATE_PATH=${SETUP_DISK_CANDIDATE_INDEXABLE[0]}
+        SETUP_DISK_CANDIDATE_SIZE=${SETUP_DISK_CANDIDATE_INDEXABLE[3]}
+        SETUP_DISK_CANDIDATE_MOUNT=${SETUP_DISK_CANDIDATE_INDEXABLE[6]}
+        if test -n "$SETUP_DISK_CANDIDATE_MOUNT"; then
+            echo "Ignoring mounted disk: $SETUP_DISK_CANDIDATE_FIELD_1"
+            continue
+        fi
+        if test $SETUP_DISK_CANDIDATE_SIZE -gt $SETUP_DISK_SIZE; then
+            export SETUP_DISK_SIZE=$SETUP_DISK_CANDIDATE_SIZE
+            export SETUP_DISK=$SETUP_DISK_CANDIDATE_PATH
+        fi
+    done <<<"$SETUP_LSBLK"
+    if test -z "$SETUP_DISK"; then
+        quit "Failed to find a disk that meets the minimum size requirement ($SETUP_DISK_MIN_BYTES bytes)"
+    fi
     export SETUP_DISK_BOOT=$SETUP_DISK"1"
     export SETUP_DISK_ROOT=$SETUP_DISK"2"
     echo "Created boot partition: $SETUP_DISK_BOOT"
