@@ -4,7 +4,7 @@ pkgrel=1
 pkgdesc="Custom configuration for neovim"
 arch=("any")
 depends=("cgs-neovim-nightly" "git" "clang" "lua-language-server" "pyright" "aspell" "aspell-en")
-optdepends=("bash-language-server" "jdtls" "swift-mesonlsp" "cgs-xor-crypt" "openssl")
+optdepends=("bash-language-server" "jdtls" "cgs-xor-crypt" "openssl")
 source=("git+https://github.com/cshmookler/config.nvim.git")
 md5sums=("SKIP")
 

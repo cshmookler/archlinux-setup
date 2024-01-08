@@ -127,7 +127,7 @@ if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
     installpkg $SETUP_USER cgs-neovim-nightly || redtext "Failed to install cgs-neovim-nightly (exit code: $?)"
     installpkg $SETUP_USER cgs-xor-crypt || redtext "Failed to install cgs-xor-crypt (exit code: $?)"
     sudo -u $SETUP_USER yay -Sy --noconfirm jdtls || redtext "Failed to install jdtls (exit code: $?)"
-    sudo -u $SETUP_USER yay -Sy --noconfirm swift-mesonlsp || redtext "Failed to install swift-mesonlsp (exit code: $?)"
+    # sudo -u $SETUP_USER yay -Sy --noconfirm swift-mesonlsp || redtext "Failed to install swift-mesonlsp (exit code: $?)"
     installpkg $SETUP_USER cgs-neovim-nightly-user-cfg || redtext "Failed to install cgs-neovim-nightly-user-cfg (exit code: $?)"
 fi
 if ! test -f /bin/vim; then
