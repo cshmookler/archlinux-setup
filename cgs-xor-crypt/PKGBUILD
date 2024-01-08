@@ -19,7 +19,8 @@ build() {
     pip install "conan>=2.0.0"
     export CC=clang
     export CXX=clang++
-    conan build --build=missing --profile:build=$startdir/xor_crypt.profile $srcdir/xor_crypt
+    XOR_CRYPT_PROFILE=$startdir/xor_crypt.profile
+    conan build --build=missing --profile:host=$XOR_CRYPT_PROFILE --profile:build=$XOR_CRYPT_PROFILE $srcdir/xor_crypt
     deactivate
 }
 
