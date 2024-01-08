@@ -9,8 +9,4 @@ package() {
     SETUP_USERJS_DIR=$pkgdir/home/$USER/.local/share/torbrowser/tbb/x86_64/tor-browser/Browser/TorBrowser/Data/Browser/profile.default/
     mkdir -p $SETUP_USERJS_DIR
     cp $startdir/user.js $SETUP_USERJS_DIR
-    curl https://addons.mozilla.org/firefox/downloads/file/4198829/ublock_origin-1.54.0.xpi >$SETUP_USERJS_DIR/extensions/ublock_origin-1.54.0.xpi
-    curl https://addons.mozilla.org/firefox/downloads/file/4205543/darkreader-4.9.73.xpi >$SETUP_USERJS_DIR/extensions/darkreader-4.9.73.xpi
-    curl https://addons.mozilla.org/firefox/downloads/file/3535009/redirector-3.5.3.xpi >$SETUP_USERJS_DIR/extensions/redirector-3.5.3.xpi
-    curl https://addons.mozilla.org/firefox/downloads/file/4191523/vimium_ff-2.0.6.xpi >$SETUP_USERJS_DIR/extensions/vimium_ff-2.0.6.xpi
 }

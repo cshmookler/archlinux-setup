@@ -132,6 +132,9 @@ if test "$SETUP_HEADLESS" = "false"; then
     chown -R $SETUP_USER:$SETUP_USER . || quit "Failed to change directory permissions of archlinux-setup to $SETUP_USER:$SETUP_USER"
     installpkg $SETUP_USER cgs-xorg-user-cfg || redtext "Failed to install cgs-xorg-user-cfg"
     installpkg $SETUP_USER cgs-tor-browser-user-cfg || redtext "Failed to install cgs-tor-browser-user-cfg"
+    if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
+        installpkg $SETUP_USER cgs-neovim-nightly-user-cfg || redtext "Failed to install cgs-neovim-nightly-user-cfg"
+    fi
     EDITOR="sed -i '$ d'" visudo || quit "Failed to remove sudo privileges to user \"$SETUP_USER\""
     echo '
 # Start the X server on login
@@ -139,16 +142,6 @@ if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" = 1 ]; then
     startx
 fi
 ' >>/home/$SETUP_USER/.bash_profile || quit "Failed to enable starting the X server upon login"
-fi
-if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
-    echo "----------------------------------------"
-#     echo "Downloading the custom neovim configuration for user \"$SETUP_USER\"..."
-#     git clone --depth=1 https://github.com/cshmookler/config.nvim /home/$SETUP_USER/.config/nvim || quit "Failed to download the custom neovim configuration for user \"$SETUP_USER\""
-
-#     echo "----------------------------------------"
-#     echo "Generating dictionary for neovim..."
-#     mkdir -p /etc/xdg/nvim/ || quit "Failed to create /etc/xdg/nvim/"
-#     aspell -d en dump master | aspell -l en expand >/etc/xdg/nvim/en.dict || quit "Failed generate the dictionary for neovim"
 fi
 
 echo "----------------------------------------"

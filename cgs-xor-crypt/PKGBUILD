@@ -1,0 +1,33 @@
+pkgname="cgs-xor-crypt"
+pkgver=20231007
+pkgrel=1
+pkgdesc="Uses a one-time pad to encrypt and decrypt data"
+arch=("x86_64")
+license=("Zlib")
+depends=("clang" "git" "python" "python-pip")
+source=("git+https://github.com/cshmookler/xor_crypt.git")
+md5sums=("SKIP")
+
+pkgver() {
+    cd $srcdir/xor_crypt
+    git log -1 --date=format:"%Y%m%d" --format="%ad"
+}
+
+build() {
+    python -m venv venv
+    source venv/bin/activate
+    pip install "conan>=2.0.0"
+    XOR_CRYPT_PROFILE_DIR=$pkgdir/home/$USER/.conan2/profiles/
+    mkdir -p XOR_CRYPT_PROFILE_DIR
+    cp $startdir/xor_crypt.profile $XOR_CRYPT_PROFILE_DIR/xor_crypt.profile
+    export CC=clang
+    export CXX=clang++
+    conan build --build=missing $srcdir/xor_crypt
+    deactivate
+}
+
+package() {
+    XOR_CRYPT_BIN_DIR=$pkgdir/usr/bin/
+    mkdir -p $XOR_CRYPT_BIN_DIR
+    cp $srcdir/xor_crypt/build/xorc $XOR_CRYPT_BIN_DIR/xorc
+}

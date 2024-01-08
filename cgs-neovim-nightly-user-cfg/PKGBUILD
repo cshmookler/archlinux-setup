@@ -1,0 +1,22 @@
+pkgname="cgs-neovim-nightly-user-cfg"
+pkgver=20240107
+pkgrel=1
+pkgdesc="Custom configuration for neovim"
+arch=("any")
+depends=("cgs-neovim-nightly" "git" "clang" "lua-language-server" "bash-language-server" "pyright" "aspell" "aspell-en" "cgs-xor-crypt" "openssl" "coreutils" "yay")
+source=("git+https://github.com/cshmookler/config.nvim.git")
+md5sums=("SKIP")
+
+pkgver() {
+    cd $srcdir/config.nvim
+    git log -1 --date=format:"%Y%m%d" --format="%ad"
+}
+
+package() {
+    SETUP_NVIM_CONFIG_DIR=$pkgdir/home/$USER/.config/nvim/
+    mkdir -p $SETUP_NVIM_CONFIG_DIR
+    cp -r $srcdir/config.nvim/* $SETUP_NVIM_CONFIG_DIR
+    mkdir -p /etc/xdg/nvim/
+    aspell -d en dump master | aspell -l en expand >/etc/xdg/nvim/en.dict
+    yay -S --noconfirm swift-mesonlsp
+}
