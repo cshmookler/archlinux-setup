@@ -133,6 +133,7 @@ if test "$SETUP_HEADLESS" = "false"; then
     installpkg $SETUP_USER cgs-xorg-user-cfg || redtext "Failed to install cgs-xorg-user-cfg"
     installpkg $SETUP_USER cgs-tor-browser-user-cfg || redtext "Failed to install cgs-tor-browser-user-cfg"
     if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
+        installpkg $SETUP_USER cgs-xor-crypt || redtext "Failed to install cgs-xor-crypt"
         installpkg $SETUP_USER cgs-neovim-nightly-user-cfg || redtext "Failed to install cgs-neovim-nightly-user-cfg"
     fi
     EDITOR="sed -i '$ d'" visudo || quit "Failed to remove sudo privileges to user \"$SETUP_USER\""

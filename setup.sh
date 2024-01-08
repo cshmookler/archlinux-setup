@@ -58,7 +58,7 @@ if test -z "$SETUP_PING"; then
     export SETUP_PING=1.1.1.1
 fi
 if test -z "$SETUP_DISK_MIN_BYTES"; then
-    export SETUP_DISK_MIN_BYTES=8000000000
+    export SETUP_DISK_MIN_BYTES=16000000000
 fi
 if test -z "$SETUP_HEADLESS"; then
     export SETUP_HEADLESS=false
@@ -69,14 +69,11 @@ fi
 if test -z "$SETUP_EXTRA_PACKAGES"; then
     export SETUP_EXTRA_PACKAGES=""
 fi
-# export SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager limine efibootmgr bash bash-completion man-db man-pages texinfo zip unzip curl git python htop lynx ufw transmission-cli openssh openvpn arch-wiki-lite"
-export SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager bash bash-completion man-db man-pages texinfo curl git zip unzip python htop lynx ufw openssh"
+export SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager bash bash-completion man-db man-pages texinfo curl git zip unzip python htop lynx ufw transmission-cli openssh openvpn"
 if test "$SETUP_HEADLESS" = "false"; then
-    # export SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock physlock ttf-hack-nerd noto-fonts-emoji torbrowser-launcher gtkmm3 alsa-lib vlc pulseaudio libreoffice-fresh xreader $SETUP_EXTRA_PACKAGES"
-    export SETUP_EXTRA_PACKAGES="$SETUP_EXTRA_PACKAGES"
+    export SETUP_EXTRA_PACKAGES="vlc pulseaudio libreoffice-fresh xreader $SETUP_EXTRA_PACKAGES"
 fi
 if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
-    # export SETUP_EXTRA_PACKAGES="clang python-black cmake ninja lua-language-server bash-language-server aspell aspell-en $SETUP_EXTRA_PACKAGES"
     export SETUP_EXTRA_PACKAGES="$SETUP_EXTRA_PACKAGES"
 fi
 if test -z "$SETUP_TIME_ZONE"; then

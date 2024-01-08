@@ -12,7 +12,7 @@ A script that installs Arch Linux with my preferred configuration.
 export SETUP_DIR=~                      # Directory to switch to before doing anything else
 export SETUP_PING=1.1.1.1               # IP address or domain name for testing network connectivity
 export SETUP_DISK=                      # The disk to install arch linux on (unset by default, an unmounted disk is automatically selected)
-export SETUP_DISK_MIN_BYTES=8589934592  # The minimum number of bytes that a disk must have to be automatically selected for installation (default 8 GiB)
+export SETUP_DISK_MIN_BYTES=16000000000 # The minimum number of bytes that a disk must have to be automatically selected for installation (default 16 GB)
 export SETUP_HEADLESS=false             # Whether to install a display server and other related software
 export SETUP_DEVELOPMENT_TOOLS=true     # Whether to install development tools
 export SETUP_EXTRA_PACKAGES=""          # Extra packages to install on the system
@@ -48,6 +48,6 @@ curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/setup.
 - [X] Replace dwm-bar with cgs-slstatus.
 - [X] Separate each component into its own package.
 - [X] Allow optional components of the installation to fail without stopping the installation.
-- [ ] Package the custom neovim configuration into its own package.
+- [X] Package the custom neovim configuration into its own package.
 - [ ] Plug OpenVPN dns leak.
 - [ ] Automatically install browser extensions.

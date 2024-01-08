@@ -1,6 +1,6 @@
 export SETUP_PING=1.1.1.1               # IP address or domain name for testing network connectivity
 # SETUP_DISK=/dev/vda              # The disk to install Arch Linux on (unset by default, an unmounted disk is automatically selected)
-export SETUP_DISK_MIN_BYTES=8000000000  # The minimum number of bytes that a disk must have to be automatically selected for installation (default 8 GB)
+export SETUP_DISK_MIN_BYTES=16000000000 # The minimum number of bytes that a disk must have to be automatically selected for installation (default 16 GB)
 export SETUP_HEADLESS=false             # Whether to install a display server and other related software
 export SETUP_DEVELOPMENT_TOOLS=true     # Whether to install development tools
 export SETUP_EXTRA_PACKAGES=""          # Extra packages to install on the system
