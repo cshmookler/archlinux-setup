@@ -72,10 +72,6 @@ echo "Setting the root password..."
 usermod --password $(openssl passwd -1 $SETUP_ROOT_PASSWORD) root || quit "Failed to set the root password"
 
 echo "----------------------------------------"
-echo "Installing yay..."
-cd /tmp || quit "Failed to change directory to /tmp"
-
-echo "----------------------------------------"
 echo "Installing AUR and custom packages..."
 cd /tmp || quit "Failed to change directory to /tmp"
 git clone https://github.com/cshmookler/archlinux-setup || quit "Failed to download custom packages"
