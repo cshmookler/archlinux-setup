@@ -54,52 +54,22 @@ fi
 
 echo "----------------------------------------"
 echo "Configuring options..."
-if test -z "$SETUP_PING"; then
-    export SETUP_PING=1.1.1.1
-fi
-if test -z "$SETUP_DISK_MIN_BYTES"; then
-    export SETUP_DISK_MIN_BYTES=16000000000
-fi
-if test -z "$SETUP_HEADLESS"; then
-    export SETUP_HEADLESS=false
-fi
-if test -z "$SETUP_DEVELOPMENT_TOOLS"; then
-    export SETUP_DEVELOPMENT_TOOLS=true
-fi
-if test -z "$SETUP_EXTRA_PACKAGES"; then
-    export SETUP_EXTRA_PACKAGES=""
-fi
+test -z "$SETUP_PING" && export SETUP_PING=1.1.1.1
+test -z "$SETUP_DISK_MIN_BYTES" && export SETUP_DISK_MIN_BYTES=16000000000
+test -z "$SETUP_HEADLESS" && export SETUP_HEADLESS=false
+test -z "$SETUP_DEVELOPMENT_TOOLS" && export SETUP_DEVELOPMENT_TOOLS=true
+test -z "$SETUP_EXTRA_PACKAGES" && export SETUP_EXTRA_PACKAGES=""
 export SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager bash bash-completion man-db man-pages texinfo curl git zip unzip python htop lynx ufw transmission-cli openssh openvpn"
-if test "$SETUP_HEADLESS" = "false"; then
-    export SETUP_EXTRA_PACKAGES="vlc pulseaudio libreoffice-fresh xreader $SETUP_EXTRA_PACKAGES"
-fi
-if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
-    export SETUP_EXTRA_PACKAGES="$SETUP_EXTRA_PACKAGES"
-fi
-if test -z "$SETUP_TIME_ZONE"; then
-    export SETUP_TIME_ZONE="America/Denver"
-fi
-if test -z "$SETUP_HOSTNAME"; then
-    export SETUP_HOSTNAME="arch"
-fi
-if test -z "$SETUP_ROOT_PASSWORD"; then
-    export SETUP_ROOT_PASSWORD="arch"
-fi
-if test -z "$SETUP_USER"; then
-    export SETUP_USER="main"
-fi
-if test -z "$SETUP_USER_PASSWORD"; then
-    export SETUP_USER_PASSWORD="main"
-fi
-if test -z "$SETUP_SUDO_GROUP"; then
-    export SETUP_SUDO_GROUP="wheel"
-fi
-if test -z "$SETUP_SSH_PORT"; then
-    export SETUP_SSH_PORT=22
-fi
-if test -z "$SETUP_RESTART_TIME"; then
-    export SETUP_RESTART_TIME=10
-fi
+test "$SETUP_HEADLESS" = "false" && export SETUP_EXTRA_PACKAGES="vlc pulseaudio libreoffice-fresh xreader $SETUP_EXTRA_PACKAGES"
+test "$SETUP_DEVELOPMENT_TOOLS" = "true" && export SETUP_EXTRA_PACKAGES="$SETUP_EXTRA_PACKAGES"
+test -z "$SETUP_TIME_ZONE" && export SETUP_TIME_ZONE="America/Denver"
+test -z "$SETUP_HOSTNAME" && export SETUP_HOSTNAME="arch"
+test -z "$SETUP_ROOT_PASSWORD" && export SETUP_ROOT_PASSWORD="arch"
+test -z "$SETUP_USER" && export SETUP_USER="main"
+test -z "$SETUP_USER_PASSWORD" && export SETUP_USER_PASSWORD="main"
+test -z "$SETUP_SUDO_GROUP" && export SETUP_SUDO_GROUP="wheel"
+test -z "$SETUP_SSH_PORT" && export SETUP_SSH_PORT=22
+test -z "$SETUP_RESTART_TIME" && export SETUP_RESTART_TIME=10
 
 echo "----------------------------------------"
 echo "Checking internet connectivity..."
