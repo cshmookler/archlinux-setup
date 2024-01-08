@@ -76,7 +76,6 @@ echo "Installing AUR and custom packages..."
 cd /tmp || quit "Failed to change directory to /tmp"
 git clone https://github.com/cshmookler/archlinux-setup || quit "Failed to download custom packages"
 cd archlinux-setup || quit "Failed to change directory to archlinux-setup"
-git clone https://aur.archlinux.org/yay.git || redtext "Failed to clone yay from the Arch Linux AUR"
 chown -R nobody:nobody . || quit "Failed to change directory permissions of archlinux-setup to nobody:nobody"
 echo "%nobody ALL=(ALL:ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to temporarily give sudo privileges to user \"nobody\""
 SETUP_INSTALLPKG_FUNC='installpkg() {
@@ -95,7 +94,6 @@ elif test "$SETUP_BOOT_MODE" = "BIOS"; then
 else
     quit "Invalid boot mode \"$SETUP_BOOT_MODE\""
 fi
-installpkg nobody yay || redtext "Failed to install yay"
 installpkg nobody cgs-vim-keyboard-layout || redtext "Failed to install cgs-vim-keyboard-layout"
 installpkg nobody cgs-ssh-cfg || redtext "Failed to install cgs-ssh-cfg"
 if test "$SETUP_HEADLESS" = "false"; then
@@ -131,7 +129,9 @@ useradd -mU $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
 usermod --password $(openssl passwd -1 "$SETUP_USER_PASSWORD") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
 if test "$SETUP_HEADLESS" = "false"; then
     echo "%$SETUP_USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to temporarily give sudo privileges to user \"$SETUP_USER\""
+    git clone https://aur.archlinux.org/yay.git || redtext "Failed to clone yay from the Arch Linux AUR"
     chown -R $SETUP_USER:$SETUP_USER . || quit "Failed to change directory permissions of archlinux-setup to $SETUP_USER:$SETUP_USER"
+    installpkg $SETUP_USER yay || redtext "Failed to install yay"
     installpkg $SETUP_USER cgs-xorg-user-cfg || redtext "Failed to install cgs-xorg-user-cfg"
     installpkg $SETUP_USER cgs-tor-browser-user-cfg || redtext "Failed to install cgs-tor-browser-user-cfg"
     if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then

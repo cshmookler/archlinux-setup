@@ -49,5 +49,6 @@ curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/setup.
 - [X] Separate each component into its own package.
 - [X] Allow optional components of the installation to fail without stopping the installation.
 - [X] Package the custom neovim configuration into its own package.
+- [X] Install yay by default.
 - [ ] Plug OpenVPN dns leak.
 - [ ] Automatically install browser extensions.
