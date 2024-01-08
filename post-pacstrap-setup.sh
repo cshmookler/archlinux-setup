@@ -72,10 +72,15 @@ echo "Setting the root password..."
 usermod --password $(openssl passwd -1 $SETUP_ROOT_PASSWORD) root || quit "Failed to set the root password"
 
 echo "----------------------------------------"
-echo "Installing custom packages..."
+echo "Installing yay..."
+cd /tmp || quit "Failed to change directory to /tmp"
+
+echo "----------------------------------------"
+echo "Installing AUR and custom packages..."
 cd /tmp || quit "Failed to change directory to /tmp"
 git clone https://github.com/cshmookler/archlinux-setup || quit "Failed to download custom packages"
 cd archlinux-setup || quit "Failed to change directory to archlinux-setup"
+git clone https://aur.archlinux.org/yay.git || redtext "Failed to clone yay from the Arch Linux AUR"
 chown -R nobody:nobody . || quit "Failed to change directory permissions of archlinux-setup to nobody:nobody"
 echo "%nobody ALL=(ALL:ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to temporarily give sudo privileges to user \"nobody\""
 SETUP_INSTALLPKG_FUNC='installpkg() {
@@ -94,6 +99,7 @@ elif test "$SETUP_BOOT_MODE" = "BIOS"; then
 else
     quit "Invalid boot mode \"$SETUP_BOOT_MODE\""
 fi
+installpkg nobody yay || redtext "Failed to install yay"
 installpkg nobody cgs-vim-keyboard-layout || redtext "Failed to install cgs-vim-keyboard-layout"
 installpkg nobody cgs-ssh-cfg || redtext "Failed to install cgs-ssh-cfg"
 if test "$SETUP_HEADLESS" = "false"; then
