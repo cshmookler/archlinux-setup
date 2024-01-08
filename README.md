@@ -46,7 +46,8 @@ curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/setup.
 - [X] Automatic screen locking and suspending.
 - [X] Install essential GUI applications (firefox).
 - [X] Replace dwm-bar with cgs-slstatus.
-- [ ] Separate each component into its own package.
-- [ ] Allow optional components of the installation to fail without stopping the installation.
-- [ ] Replace lynx with surf and tabbed.
+- [X] Separate each component into its own package.
+- [X] Allow optional components of the installation to fail without stopping the installation.
+- [ ] Package the custom neovim configuration into its own package.
 - [ ] Plug OpenVPN dns leak.
+- [ ] Automatically install browser extensions.
