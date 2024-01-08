@@ -16,7 +16,7 @@ package() {
     SETUP_NVIM_CONFIG_DIR=$pkgdir/home/$USER/.config/nvim/
     mkdir -p $SETUP_NVIM_CONFIG_DIR
     cp -r $srcdir/config.nvim/* $SETUP_NVIM_CONFIG_DIR
-    mkdir -p /etc/xdg/nvim/
-    aspell -d en dump master | aspell -l en expand >/etc/xdg/nvim/en.dict
-    yay -S --noconfirm swift-mesonlsp
+    sudo mkdir -p /etc/xdg/nvim/
+    aspell -d en dump master | aspell -l en expand | sudo tee /etc/xdg/nvim/en.dict
+    yay -S --noconfirm swift-mesonlsp jdtls
 }
