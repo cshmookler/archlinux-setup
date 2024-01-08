@@ -17,7 +17,7 @@ build() {
     python -m venv venv
     source venv/bin/activate
     pip install "conan>=2.0.0"
-    XOR_CRYPT_PROFILE_DIR=$pkgdir/home/$USER/.conan2/profiles/
+    XOR_CRYPT_PROFILE_DIR=/home/$USER/.conan2/profiles/
     mkdir -p XOR_CRYPT_PROFILE_DIR
     cp $startdir/xor_crypt.profile $XOR_CRYPT_PROFILE_DIR/xor_crypt.profile
     export CC=clang
