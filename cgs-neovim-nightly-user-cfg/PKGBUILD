@@ -17,6 +17,7 @@ package() {
     mkdir -p $SETUP_NVIM_CONFIG_DIR
     cp -r $srcdir/config.nvim/* $SETUP_NVIM_CONFIG_DIR
     sudo mkdir -p /etc/xdg/nvim/
-    aspell -d en dump master | aspell -l en expand | sudo tee /etc/xdg/nvim/en.dict
-    yay -S --noconfirm swift-mesonlsp jdtls
+    aspell -d en dump master | aspell -l en expand | sudo dd of=/etc/xdg/nvim/en.dict
+    yay -S --noconfirm jdtls
+    yay -S --noconfirm swift-mesonlsp || echo -e "\e[31;1mFailed to install swift-mesonlsp\e[0m"
 }
