@@ -179,9 +179,9 @@ if ! test -f /sys/firmware/efi/fw_platform_size; then
         echo       # reserve the rest of the disk
         echo w     # write changes
     ) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
-    read -a SETUP_DISK_BOOT <<<$(lsblk -nrbpo name,size,type $SETUP_DISK | grep --color=never "$(($SETUP_BOOT_PARTITION_MEBIBYTES*1048576*1000000)) part") || quit "Failed to search for the boot partition"
+    read -a SETUP_DISK_BOOT <<<$(lsblk -nrbpo name,size,type $SETUP_DISK | grep --color=never "$(($SETUP_BOOT_PARTITION_MEBIBYTES*1048576)) part") || quit "Failed to search for the boot partition"
     test -z $SETUP_DISK_BOOT || quit "Failed to identify the boot partition"
-    read -a SETUP_DISK_ROOT <<<$(lsblk -nrbpo name,size,type $SETUP_DISK | grep --color=never --invert-match "$(($SETUP_BOOT_PARTITION_MEBIBYTES*1048576*1000000)) part") | grep --color=never --invert-match " disk" || quit "Failed to search for the root partition"
+    read -a SETUP_DISK_ROOT <<<$(lsblk -nrbpo name,size,type $SETUP_DISK | grep --color=never --invert-match "$(($SETUP_BOOT_PARTITION_MEBIBYTES*1048576)) part") | grep --color=never --invert-match " disk" || quit "Failed to search for the root partition"
     test -z $SETUP_DISK_ROOT || quit "Failed to identify the root partition"
     echo "Created boot partition: $SETUP_DISK_BOOT"
     echo "Created root partition: $SETUP_DISK_ROOT"
