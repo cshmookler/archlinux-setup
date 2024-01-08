@@ -162,6 +162,7 @@ echo "----------------------------------------"
 echo "Partitioning, formatting, and mounting $SETUP_DISK"
 if ! test -f /sys/firmware/efi/fw_platform_size; then
     echo "This system is BIOS bootable only"
+    SETUP_BOOT_PARTITION_MEBIBYTES=500
     export SETUP_BOOT_MODE=BIOS
     (
         echo o     # new MBR partition table
@@ -169,7 +170,7 @@ if ! test -f /sys/firmware/efi/fw_platform_size; then
         echo p     # primary partition
         echo 1     # boot partition number
         echo       # start at the first sector
-        echo +512M # reserve space for the boot partition
+        echo +"$SETUP_BOOT_PARTITION_MEBIBYTES"M # reserve space for the boot partition
         echo a     # set the bootable flag
         echo n     # new root partition
         echo p     # primary partition
@@ -178,28 +179,10 @@ if ! test -f /sys/firmware/efi/fw_platform_size; then
         echo       # reserve the rest of the disk
         echo w     # write changes
     ) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
-    SETUP_DISK_SIZE=$SETUP_DISK_MIN_BYTES
-    SETUP_LSBLK=$(lsblk -nrbp | grep --color=never " disk ")
-    while read -r SETUP_DISK_CANDIDATE; do
-        read -a SETUP_DISK_CANDIDATE_INDEXABLE <<<$SETUP_LSBLK
-        SETUP_DISK_CANDIDATE_INDEX=0
-        SETUP_DISK_CANDIDATE_PATH=${SETUP_DISK_CANDIDATE_INDEXABLE[0]}
-        SETUP_DISK_CANDIDATE_SIZE=${SETUP_DISK_CANDIDATE_INDEXABLE[3]}
-        SETUP_DISK_CANDIDATE_MOUNT=${SETUP_DISK_CANDIDATE_INDEXABLE[6]}
-        if test -n "$SETUP_DISK_CANDIDATE_MOUNT"; then
-            echo "Ignoring mounted disk: $SETUP_DISK_CANDIDATE_FIELD_1"
-            continue
-        fi
-        if test $SETUP_DISK_CANDIDATE_SIZE -gt $SETUP_DISK_SIZE; then
-            export SETUP_DISK_SIZE=$SETUP_DISK_CANDIDATE_SIZE
-            export SETUP_DISK=$SETUP_DISK_CANDIDATE_PATH
-        fi
-    done <<<"$SETUP_LSBLK"
-    if test -z "$SETUP_DISK"; then
-        quit "Failed to find a disk that meets the minimum size requirement ($SETUP_DISK_MIN_BYTES bytes)"
-    fi
-    export SETUP_DISK_BOOT=$SETUP_DISK"1"
-    export SETUP_DISK_ROOT=$SETUP_DISK"2"
+    read -a SETUP_DISK_BOOT <<<$(lsblk -nrbpo name,size,type $SETUP_DISK | grep --color=never "$((SETUP_BOOT_PARTITION_MEBIBYTES*1048576*1000000)) part") || quit "Failed to search for the boot partition"
+    test -z $SETUP_DISK_BOOT || quit "Failed to identify the boot partition"
+    read -a SETUP_DISK_ROOT <<<$(lsblk -nrbpo name,size,type $SETUP_DISK | grep --color=never --invert-match "$((SETUP_BOOT_PARTITION_MEBIBYTES*1048576*1000000)) part") | grep --color=never --invert-match " disk" || quit "Failed to search for the root partition"
+    test -z $SETUP_DISK_ROOT || quit "Failed to identify the root partition"
     echo "Created boot partition: $SETUP_DISK_BOOT"
     echo "Created root partition: $SETUP_DISK_ROOT"
     mkfs.fat -F 32 $SETUP_DISK_BOOT || quit "Failed to format the boot partition: $SETUP_DISK_BOOT"
@@ -224,12 +207,13 @@ else
 fi
 
 if test "$SETUP_BOOT_MODE" = "UEFI-32" -o "$SETUP_BOOT_MODE" = "UEFI-64"; then
+    SETUP_EFI_PARTITION_MEBIBYTES=500
     (
         echo g     # new GPT partition table
         echo n     # new EFI partition
         echo 1     # EFI partiion number
         echo       # start at the first sector
-        echo +512M # reserve space for the EFI partition
+        echo +"$SETUP_EFI_PARTITION_MEBIBYTES"M # reserve space for the EFI partition
         echo t     # change EFI partition type
         echo 1     # change partition type to EFI System
         echo n     # new root partition
@@ -238,8 +222,12 @@ if test "$SETUP_BOOT_MODE" = "UEFI-32" -o "$SETUP_BOOT_MODE" = "UEFI-64"; then
         echo       # reserve the rest of the disk
         echo w     # write changes
     ) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
-    export SETUP_DISK_EFI=$SETUP_DISK"1"
-    export SETUP_DISK_ROOT=$SETUP_DISK"2"
+    read -a SETUP_DISK_EFI <<<$(lsblk -nrbpo name,size,type $SETUP_DISK | grep --color=never "$((SETUP_EFI_PARTITION_MEBIBYTES*1048576*1000000)) part") || quit "Failed to search for the efi partition"
+    test -z $SETUP_DISK_EFI || quit "Failed to identify the efi partition"
+    export SETUP_DISK_EFI
+    read -a SETUP_DISK_ROOT <<<$(lsblk -nrbpo name,size,type $SETUP_DISK | grep --color=never --invert-match "$((SETUP_EFI_PARTITION_MEBIBYTES*1048576*1000000)) part") | grep --color=never --invert-match " disk" || quit "Failed to search for the root partition"
+    test -z $SETUP_DISK_ROOT || quit "Failed to identify the root partition"
+    export SETUP_DISK_ROOT
     echo "Created EFI partition: $SETUP_DISK_EFI"
     echo "Created root partition: $SETUP_DISK_ROOT"
     mkfs.fat -F 32 $SETUP_DISK_EFI || quit "Failed to format the EFI partition: $SETUP_DISK_EFI"
