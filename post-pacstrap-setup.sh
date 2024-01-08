@@ -72,12 +72,28 @@ echo "Setting the root password..."
 usermod --password $(openssl passwd -1 $SETUP_ROOT_PASSWORD) root || quit "Failed to set the root password"
 
 echo "----------------------------------------"
+echo "Creating sudo group \"$SETUP_SUDO_GROUP\""
+groupadd -f $SETUP_SUDO_GROUP || quit "Failed to create group \"$SETUP_SUDO_GROUP\""
+
+echo "----------------------------------------"
+echo "Creating user \"$SETUP_USER\"..."
+useradd -mU $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
+usermod --password $(openssl passwd -1 "$SETUP_USER_PASSWORD") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
+echo '
+# Start the X server on login
+if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" = 1 ]; then
+    startx
+fi' >>/home/$SETUP_USER/.bash_profile || quit "Failed to enable starting the X server upon login"
+
+
+echo "----------------------------------------"
 echo "Installing AUR and custom packages..."
 cd /tmp || quit "Failed to change directory to /tmp"
+echo "%$SETUP_USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to temporarily give passwordless sudo privileges to user \"$SETUP_USER\""
 git clone https://github.com/cshmookler/archlinux-setup || quit "Failed to download custom packages"
 cd archlinux-setup || quit "Failed to change directory to archlinux-setup"
-chown -R nobody:nobody . || quit "Failed to change directory permissions of archlinux-setup to nobody:nobody"
-echo "%nobody ALL=(ALL:ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to temporarily give sudo privileges to user \"nobody\""
+git clone https://aur.archlinux.org/yay.git || redtext "Failed to clone yay from the Arch Linux AUR"
+chown -R $SETUP_USER:$SETUP_USER . || quit "Failed to change directory permissions of archlinux-setup to $SETUP_USER:$SETUP_USER"
 SETUP_INSTALLPKG_FUNC='installpkg() {
     cd "$2" || return 1
     if ! sudo -u "$1" makepkg --install --syncdeps --noconfirm; then
@@ -88,64 +104,37 @@ SETUP_INSTALLPKG_FUNC='installpkg() {
 }'
 eval "$SETUP_INSTALLPKG_FUNC" || quit "Failed to source the package installation script"
 if test "$SETUP_BOOT_MODE" = "UEFI-32" -o "$SETUP_BOOT_MODE" = "UEFI-64"; then
-    installpkg nobody cgs-limine-uefi || quit "Failed to install cgs-limine-uefi"
+    installpkg $SETUP_USER cgs-limine-uefi || quit "Failed to install cgs-limine-uefi (exit code: $?)"
 elif test "$SETUP_BOOT_MODE" = "BIOS"; then
-    installpkg nobody cgs-limine-bios || quit "Failed to install cgs-limine-bios"
+    installpkg $SETUP_USER  cgs-limine-bios || quit "Failed to install cgs-limine-bios (exit code: $?)"
 else
     quit "Invalid boot mode \"$SETUP_BOOT_MODE\""
 fi
-installpkg nobody cgs-vim-keyboard-layout || redtext "Failed to install cgs-vim-keyboard-layout"
-installpkg nobody cgs-ssh-cfg || redtext "Failed to install cgs-ssh-cfg"
+installpkg $SETUP_USER yay || redtext "Failed to install yay (exit code: $?)"
+installpkg $SETUP_USER cgs-vim-keyboard-layout || redtext "Failed to install cgs-vim-keyboard-layout (exit code: $?)"
+installpkg $SETUP_USER cgs-ssh-cfg || redtext "Failed to install cgs-ssh-cfg (exit code: $?)"
 if test "$SETUP_HEADLESS" = "false"; then
-    installpkg nobody cgs-xorg-cfg || redtext "Failed to install cgs-xorg-cfg"
-    installpkg nobody cgs-slock || redtext "Failed to install cgs-slock"
-    installpkg nobody cgs-st || redtext "Failed to install cgs-st"
-    installpkg nobody cgs-slstatus || redtext "Failed to install cgs-slstatus"
-    installpkg nobody cgs-dmenu || redtext "Failed to install cgs-dmenu"
-    installpkg nobody cgs-dwm || redtext "Failed to install cgs-dwm"
+    installpkg $SETUP_USER cgs-xorg-cfg || redtext "Failed to install cgs-xorg-cfg (exit code: $?)"
+    installpkg $SETUP_USER cgs-slock || redtext "Failed to install cgs-slock (exit code: $?)"
+    installpkg $SETUP_USER cgs-st || redtext "Failed to install cgs-st (exit code: $?)"
+    installpkg $SETUP_USER cgs-slstatus || redtext "Failed to install cgs-slstatus (exit code: $?)"
+    installpkg $SETUP_USER cgs-dmenu || redtext "Failed to install cgs-dmenu (exit code: $?)"
+    installpkg $SETUP_USER cgs-dwm || redtext "Failed to install cgs-dwm (exit code: $?)"
+    installpkg $SETUP_USER cgs-xorg-user-cfg || redtext "Failed to install cgs-xorg-user-cfg (exit code: $?)"
+    installpkg $SETUP_USER cgs-tor-browser-user-cfg || redtext "Failed to install cgs-tor-browser-user-cfg (exit code: $?)"
 fi
 if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
-    if ! installpkg nobody cgs-neovim-nightly; then
-        redtext "Failed to install cgs-neovim-nightly"
-    fi
+    installpkg $SETUP_USER cgs-neovim-nightly || redtext "Failed to install cgs-neovim-nightly (exit code: $?)"
+    installpkg $SETUP_USER cgs-xor-crypt || redtext "Failed to install cgs-xor-crypt (exit code: $?)"
+    sudo -u $SETUP_USER yay -Sy --noconfirm jdtls || redtext "Failed to install jdtls (exit code: $?)"
+    sudo -u $SETUP_USER yay -Sy --noconfirm swift-mesonlsp || redtext "Failed to install swift-mesonlsp (exit code: $?)"
+    installpkg $SETUP_USER cgs-neovim-nightly-user-cfg || redtext "Failed to install cgs-neovim-nightly-user-cfg (exit code: $?)"
 fi
 if ! test -f /bin/vim; then
+    # Install vim if it or an alternative hasn't already been installed.
     pacman -Sy --noconfirm vim
 fi
-EDITOR="sed -i '$ d'" visudo || quit "Failed to remove sudo privileges from user \"nobody\""
-
-echo "----------------------------------------"
-echo "Switching ssh to port $SETUP_SSH_PORT and only allowing remote login by users within the group \"$SETUP_SUDO_GROUP\""
-echo "AllowGroups $SETUP_SUDO_GROUP
-Port $SETUP_SSH_PORT" >/etc/ssh/sshd_config.d/20-access.conf
-
-echo "----------------------------------------"
-echo "Creating sudo group \"$SETUP_SUDO_GROUP\""
-groupadd -f $SETUP_SUDO_GROUP || quit "Failed to create group \"$SETUP_SUDO_GROUP\""
-
-echo "----------------------------------------"
-echo "Creating user \"$SETUP_USER\"..."
-useradd -mU $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
-usermod --password $(openssl passwd -1 "$SETUP_USER_PASSWORD") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
-if test "$SETUP_HEADLESS" = "false"; then
-    echo "%$SETUP_USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to temporarily give sudo privileges to user \"$SETUP_USER\""
-    git clone https://aur.archlinux.org/yay.git || redtext "Failed to clone yay from the Arch Linux AUR"
-    chown -R $SETUP_USER:$SETUP_USER . || quit "Failed to change directory permissions of archlinux-setup to $SETUP_USER:$SETUP_USER"
-    installpkg $SETUP_USER yay || redtext "Failed to install yay"
-    installpkg $SETUP_USER cgs-xorg-user-cfg || redtext "Failed to install cgs-xorg-user-cfg"
-    installpkg $SETUP_USER cgs-tor-browser-user-cfg || redtext "Failed to install cgs-tor-browser-user-cfg"
-    if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
-        installpkg $SETUP_USER cgs-xor-crypt || redtext "Failed to install cgs-xor-crypt"
-        installpkg $SETUP_USER cgs-neovim-nightly-user-cfg || redtext "Failed to install cgs-neovim-nightly-user-cfg"
-    fi
-    EDITOR="sed -i '$ d'" visudo || quit "Failed to remove sudo privileges to user \"$SETUP_USER\""
-    echo '
-# Start the X server on login
-if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" = 1 ]; then
-    startx
-fi
-' >>/home/$SETUP_USER/.bash_profile || quit "Failed to enable starting the X server upon login"
-fi
+EDITOR="sed -i '$ d'" visudo || quit "Failed to remove sudo privileges from user \"$SETUP_USER\""
 
 echo "----------------------------------------"
 echo "Giving the user \"$SETUP_USER\" root privileges..."
@@ -153,6 +142,11 @@ echo "
 ## Allow members of group $SETUP_SUDO_GROUP to execute any command
 %$SETUP_SUDO_GROUP ALL=(ALL:ALL) ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to give sudo privileges to the \"$SETUP_SUDO_GROUP\" group"
 usermod -aG $SETUP_SUDO_GROUP $SETUP_USER || quit "Failed to give sudo privileges to user \"$SETUP_USER\""
+
+echo "----------------------------------------"
+echo "Switching ssh to port $SETUP_SSH_PORT and only allowing remote login by users within the group \"$SETUP_SUDO_GROUP\""
+echo "AllowGroups $SETUP_SUDO_GROUP
+Port $SETUP_SSH_PORT" >/etc/ssh/sshd_config.d/20-access.conf
 
 echo "----------------------------------------"
 echo "Changing ownership of all files in /home/$SETUP_USER from root to user \"$SETUP_USER\"..."
