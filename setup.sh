@@ -58,10 +58,10 @@ test -z "$SETUP_PING" && export SETUP_PING=1.1.1.1
 test -z "$SETUP_DISK_MIN_BYTES" && export SETUP_DISK_MIN_BYTES=16000000000
 test -z "$SETUP_HEADLESS" && export SETUP_HEADLESS=false
 test -z "$SETUP_DEVELOPMENT_TOOLS" && export SETUP_DEVELOPMENT_TOOLS=true
+export SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager bash bash-completion man-db man-pages texinfo curl git zip unzip python htop lynx ufw transmission-cli openssh openvpn borg"
 test -z "$SETUP_EXTRA_PACKAGES" && export SETUP_EXTRA_PACKAGES=""
-export SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager bash bash-completion man-db man-pages texinfo curl git zip unzip python htop lynx ufw transmission-cli openssh openvpn"
-test "$SETUP_HEADLESS" = "false" && export SETUP_EXTRA_PACKAGES="vlc pulseaudio libreoffice-fresh xreader $SETUP_EXTRA_PACKAGES"
-test "$SETUP_DEVELOPMENT_TOOLS" = "true" && export SETUP_EXTRA_PACKAGES="$SETUP_EXTRA_PACKAGES"
+test "$SETUP_HEADLESS" = "false" && export SETUP_EXTRA_PACKAGES="vlc libreoffice-fresh pulseaudio pulseaudio-alsa alsa-utils xreader xsel xcolor $SETUP_EXTRA_PACKAGES"
+test "$SETUP_DEVELOPMENT_TOOLS" = "true" && export SETUP_EXTRA_PACKAGES="gradle $SETUP_EXTRA_PACKAGES"
 test -z "$SETUP_TIME_ZONE" && export SETUP_TIME_ZONE="America/Denver"
 test -z "$SETUP_HOSTNAME" && export SETUP_HOSTNAME="arch"
 test -z "$SETUP_ROOT_PASSWORD" && export SETUP_ROOT_PASSWORD="arch"
