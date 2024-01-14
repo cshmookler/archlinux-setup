@@ -14,6 +14,7 @@ prepare() {
     cd $srcdir/st
     patch <$startdir/config.def.h.patch
     patch <$startdir/Makefile.patch
+    patch <$startdir/st.info.patch
 }
 
 pkgver() {
@@ -33,4 +34,5 @@ package() {
     mkdir -p "$pkgdir/usr/share/doc/$pkgname/"
     install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/"
     install -Dm644 README "$pkgdir/usr/share/doc/$pkgname/"
+    install -Dm644 $srcdir/st/st.info "$pkgdir/usr/share/$pkgname/"
 }

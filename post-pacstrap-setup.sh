@@ -79,12 +79,6 @@ echo "----------------------------------------"
 echo "Creating user \"$SETUP_USER\"..."
 useradd -mU $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
 usermod --password $(openssl passwd -1 "$SETUP_USER_PASSWORD") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
-echo '
-# Start the X server on login
-if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" = 1 ]; then
-    startx
-fi' >>/home/$SETUP_USER/.bash_profile || quit "Failed to enable starting the X server upon login"
-
 
 echo "----------------------------------------"
 echo "Installing AUR and custom packages..."
@@ -92,6 +86,7 @@ cd /tmp || quit "Failed to change directory to /tmp"
 echo "%$SETUP_USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to temporarily give passwordless sudo privileges to user \"$SETUP_USER\""
 git clone https://github.com/cshmookler/archlinux-setup || quit "Failed to download custom packages"
 cd archlinux-setup || quit "Failed to change directory to archlinux-setup"
+cp -f .bashrc /home/$SETUP_USER/
 git clone https://aur.archlinux.org/yay.git || redtext "Failed to clone yay from the Arch Linux AUR"
 chown -R $SETUP_USER:$SETUP_USER . || quit "Failed to change directory permissions of archlinux-setup to $SETUP_USER:$SETUP_USER"
 SETUP_INSTALLPKG_FUNC='installpkg() {
@@ -120,15 +115,15 @@ if test "$SETUP_HEADLESS" = "false"; then
     installpkg $SETUP_USER cgs-slstatus || redtext "Failed to install cgs-slstatus (exit code: $?)"
     installpkg $SETUP_USER cgs-dmenu || redtext "Failed to install cgs-dmenu (exit code: $?)"
     installpkg $SETUP_USER cgs-dwm || redtext "Failed to install cgs-dwm (exit code: $?)"
-    installpkg $SETUP_USER cgs-xorg-user-cfg || redtext "Failed to install cgs-xorg-user-cfg (exit code: $?)"
-    installpkg $SETUP_USER cgs-tor-browser-user-cfg || redtext "Failed to install cgs-tor-browser-user-cfg (exit code: $?)"
 fi
 if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
     installpkg $SETUP_USER cgs-neovim-nightly || redtext "Failed to install cgs-neovim-nightly (exit code: $?)"
     installpkg $SETUP_USER cgs-xor-crypt || redtext "Failed to install cgs-xor-crypt (exit code: $?)"
     sudo -u $SETUP_USER yay -Sy --noconfirm jdtls || redtext "Failed to install jdtls (exit code: $?)"
     # sudo -u $SETUP_USER yay -Sy --noconfirm swift-mesonlsp || redtext "Failed to install swift-mesonlsp (exit code: $?)"
-    installpkg $SETUP_USER cgs-neovim-nightly-user-cfg || redtext "Failed to install cgs-neovim-nightly-user-cfg (exit code: $?)"
+fi
+if test "$SETUP_HEADLESS" = "false" && test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
+    bash user-cfg/user-cfg.sh
 fi
 if ! test -f /bin/vim; then
     # Install vim if it or an alternative hasn't already been installed.

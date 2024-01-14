@@ -1,5 +1,5 @@
---- config.def.h	2023-12-15 09:15:43.244665944 -0700
-+++ config.def.h.patch	2023-12-15 09:17:29.097142049 -0700
+--- config.def.h	2024-01-09 10:02:30.991735436 -0700
++++ config.def.patch.h	2024-01-09 20:38:48.636737915 -0700
 @@ -5,7 +5,7 @@
   *
   * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
@@ -9,3 +9,69 @@
  static int borderpx = 2;
  
  /*
+@@ -16,7 +16,7 @@
+  * 4: value of shell in /etc/passwd
+  * 5: value of shell in config.h
+  */
+-static char *shell = "/bin/sh";
++static char *shell = "/bin/bash";
+ char *utmp = NULL;
+ /* scroll program: to enable use a string like "scroll" */
+ char *scroll = NULL;
+@@ -91,37 +91,37 @@
+  *
+  *	stty tabs
+  */
+-unsigned int tabspaces = 8;
++unsigned int tabspaces = 4;
+ 
+ /* Terminal colors (16 first used in escape sequence) */
+ static const char *colorname[] = {
+ 	/* 8 normal colors */
+-	"black",
+-	"red3",
+-	"green3",
+-	"yellow3",
+-	"blue2",
+-	"magenta3",
+-	"cyan3",
+-	"gray90",
++	"#000000",
++	"#cd3131",
++	"#0dbc79",
++	"#e5e510",
++	"#2472c8",
++	"#bc3fbc",
++	"#11a8cd",
++	"#e5e5e5",
+ 
+ 	/* 8 bright colors */
+-	"gray50",
+-	"red",
+-	"green",
+-	"yellow",
+-	"#5c5cff",
+-	"magenta",
+-	"cyan",
+-	"white",
++	"#666666",
++	"#f14c4c",
++	"#23d18b",
++	"#f5f543",
++	"#3b8eea",
++	"#d670d6",
++	"#29b8db",
++	"#e5e5e5",
+ 
+ 	[255] = 0,
+ 
+ 	/* more colors can be added after 255 to use with DefaultXX */
+ 	"#cccccc",
+ 	"#555555",
+-	"gray90", /* default foreground colour */
+-	"black", /* default background colour */
++	"#e5e5e5", /* default foreground colour */
++	"#000000", /* default background colour */
+ };
+ 
+ 
