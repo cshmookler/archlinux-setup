@@ -79,6 +79,11 @@ echo "----------------------------------------"
 echo "Creating user \"$SETUP_USER\"..."
 useradd -mU $SETUP_USER || quit "Failed to create the user \"$SETUP_USER\""
 usermod --password $(openssl passwd -1 "$SETUP_USER_PASSWORD") $SETUP_USER || quit "Failed to set the password for \"$SETUP_USER\""
+echo '
+# Start the X server on login
+if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" = 1 ]; then
+    startx
+fi' >>/home/$SETUP_USER/.bash_profile || quit "Failed to enable starting the X server upon login"
 
 echo "----------------------------------------"
 echo "Installing AUR and custom packages..."
@@ -123,11 +128,11 @@ if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
     # sudo -u $SETUP_USER yay -Sy --noconfirm swift-mesonlsp || redtext "Failed to install swift-mesonlsp (exit code: $?)"
 fi
 if test "$SETUP_HEADLESS" = "false" && test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
-    bash user-cfg/user-cfg.sh
+    bash -ue user-cfg/user-cfg.sh || redtext "Failed to configure user \"$SETUP_USER\""
 fi
 if ! test -f /bin/vim; then
     # Install vim if it or an alternative hasn't already been installed.
-    pacman -Sy --noconfirm vim
+    pacman -Sy --needed --noconfirm vim || redtext "Failed to install vim"
 fi
 EDITOR="sed -i '$ d'" visudo || quit "Failed to remove sudo privileges from user \"$SETUP_USER\""
 
