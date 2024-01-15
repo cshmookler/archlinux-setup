@@ -42,13 +42,13 @@ timer() {
 }
 
 no_predefined_partitions() {
-    if test $1 -eq 0; then
-        if test $2 -eq 0; then
+    if test "$1" -eq 0; then
+        if test "$2" -eq 0; then
             return 1
         else
             quit "$4"
         fi
-    elif test $2 -eq 0; then
+    elif test "$2" -eq 0; then
         quit "$3"
     fi
     return 0
