@@ -41,6 +41,19 @@ timer() {
     done
 }
 
+no_predefined_partitions() {
+    if test $1 -eq 0; then
+        if test $2 -eq 0; then
+            return 1
+        else
+            quit "$4"
+        fi
+    elif test $2 -eq 0; then
+        quit "$3"
+    fi
+    return 0
+}
+
 echo "----------------------------------------"
 echo "Sourcing the configuration file..."
 if source config.sh; then
@@ -102,11 +115,30 @@ if test -z "$SETUP_DISK"; then
     fi
 fi
 echo "Selected disk: $SETUP_DISK"
+test $SETUP_DISK_MIN_BYTES -gt $SETUP_DISK_SIZE && yellowtext "Warning: The selected disk is smaller than the minimum recommended size ($SETUP_DISK_SIZE < $SETUP_DISK_MIN_BYTES)"
+
+echo "----------------------------------------"
+echo "Selecting boot mode..."
+if ! test -f /sys/firmware/efi/fw_platform_size; then
+    echo "This system is BIOS bootable only"
+    export SETUP_BOOT_MODE=BIOS
+elif cat /sys/firmware/efi/fw_platform_size | grep -q 32; then
+    echo "This system is 32-bit UEFI bootable"
+    export SETUP_BOOT_MODE=UEFI-32
+elif cat /sys/firmware/efi/fw_platform_size | grep -q 64; then
+    echo "This system is 64-bit UEFI bootable"
+    export SETUP_BOOT_MODE=UEFI-64
+else
+    quit "Unable to identify available boot modes. Refer to the Arch Linux installation guide for help"
+fi
 
 echo "----------------------------------------"
 echo "Installing Arch Linux with the current configuration:
 
                   disk -> $SETUP_DISK
+        root partition -> $SETUP_DISK_ROOT
+        boot partition -> $SETUP_DISK_BOOT
+         EFI partition -> $SETUP_DISK_EFI
               headless -> $SETUP_HEADLESS
      development tools -> $SETUP_DEVELOPMENT_TOOLS
          base packages -> $SETUP_BASE_PACKAGES
@@ -130,31 +162,31 @@ done
 
 echo "----------------------------------------"
 echo "Partitioning, formatting, and mounting $SETUP_DISK"
-if ! test -f /sys/firmware/efi/fw_platform_size; then
-    echo "This system is BIOS bootable only"
-    SETUP_BOOT_PARTITION_MEBIBYTES=500
-    export SETUP_BOOT_MODE=BIOS
-    (
-        echo o     # new MBR partition table
-        echo n     # new boot partition (required by limine)
-        echo p     # primary partition
-        echo 1     # boot partition number
-        echo       # start at the first sector
-        echo +"$SETUP_BOOT_PARTITION_MEBIBYTES"M # reserve space for the boot partition
-        echo a     # set the bootable flag
-        echo n     # new root partition
-        echo p     # primary partition
-        echo 2     # root partiion number
-        echo       # start at the end of the boot partition
-        echo       # reserve the rest of the disk
-        echo w     # write changes
-    ) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
-    read -a SETUP_DISK_BOOT <<<$(lsblk -nrbpo name,size,type $SETUP_DISK | grep --color=never "$(($SETUP_BOOT_PARTITION_MEBIBYTES*1048576)) part") || quit "Failed to search for the boot partition"
-    test -z $SETUP_DISK_BOOT && quit "Failed to identify the boot partition"
-    read -a SETUP_DISK_ROOT <<<$(lsblk -nrbpo name,size,type $SETUP_DISK | grep --color=never --invert-match "$(($SETUP_BOOT_PARTITION_MEBIBYTES*1048576)) part" | grep --color=never --invert-match " disk") || quit "Failed to search for the root partition"
-    test -z $SETUP_DISK_ROOT && quit "Failed to identify the root partition"
-    echo "Created boot partition: $SETUP_DISK_BOOT"
-    echo "Created root partition: $SETUP_DISK_ROOT"
+if test "$SETUP_BOOT_MODE" = "BIOS"; then
+    if no_predefined_partitions $(test -n "$SETUP_DISK_BOOT"; echo $?) $(test -n "$SETUP_DISK_ROOT"; echo $?) "Error: SETUP_DISK_BOOT is not set" "Error: SETUP_DISK_ROOT is not set"; then
+        SETUP_BOOT_PARTITION_MEBIBYTES=500
+        (
+            echo o     # new MBR partition table
+            echo n     # new boot partition (required by limine)
+            echo p     # primary partition
+            echo 1     # boot partition number
+            echo       # start at the first sector
+            echo +"$SETUP_BOOT_PARTITION_MEBIBYTES"M # reserve space for the boot partition
+            echo a     # set the bootable flag
+            echo n     # new root partition
+            echo p     # primary partition
+            echo 2     # root partiion number
+            echo       # start at the end of the boot partition
+            echo       # reserve the rest of the disk
+            echo w     # write changes
+        ) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
+        read -a SETUP_DISK_BOOT <<<$(lsblk -nrbpo name,size,type $SETUP_DISK | grep --color=never "$(($SETUP_BOOT_PARTITION_MEBIBYTES*1048576)) part") || quit "Failed to search for the boot partition"
+        test -z $SETUP_DISK_BOOT && quit "Failed to identify the boot partition"
+        read -a SETUP_DISK_ROOT <<<$(lsblk -nrbpo name,size,type $SETUP_DISK | grep --color=never --invert-match "$(($SETUP_BOOT_PARTITION_MEBIBYTES*1048576)) part" | grep --color=never --invert-match " disk") || quit "Failed to search for the root partition"
+        test -z $SETUP_DISK_ROOT && quit "Failed to identify the root partition"
+        echo "Created boot partition: $SETUP_DISK_BOOT"
+        echo "Created root partition: $SETUP_DISK_ROOT"
+    fi
     mkfs.fat -F 32 $SETUP_DISK_BOOT || quit "Failed to format the boot partition: $SETUP_DISK_BOOT"
     mkfs.ext4 $SETUP_DISK_ROOT || quit "Failed to format the root partition: $SETUP_DISK_ROOT"
     echo "Formatted boot partition with FAT32"
@@ -166,40 +198,32 @@ if ! test -f /sys/firmware/efi/fw_platform_size; then
     mount --mkdir $SETUP_DISK_BOOT $SETUP_DISK_BOOT_MOUNT || quit "Failed to mount $SETUP_DISK_BOOT -> $SETUP_DISK_BOOT_MOUNT"
     echo "Mounted root partition to $SETUP_DISK_ROOT_MOUNT"
     echo "Mounted boot partition to $SETUP_DISK_BOOT_MOUNT"
-elif cat /sys/firmware/efi/fw_platform_size | grep -q 32; then
-    echo "This system is 32-bit UEFI bootable"
-    export SETUP_BOOT_MODE=UEFI-32
-elif cat /sys/firmware/efi/fw_platform_size | grep -q 64; then
-    echo "This system is 64-bit UEFI bootable"
-    export SETUP_BOOT_MODE=UEFI-64
-else
-    quit "Unable to identify available boot modes. Refer to the Arch Linux installation guide for help"
-fi
-
-if test "$SETUP_BOOT_MODE" = "UEFI-32" -o "$SETUP_BOOT_MODE" = "UEFI-64"; then
-    SETUP_EFI_PARTITION_MEBIBYTES=500
-    (
-        echo g     # new GPT partition table
-        echo n     # new EFI partition
-        echo 1     # EFI partiion number
-        echo       # start at the first sector
-        echo +"$SETUP_EFI_PARTITION_MEBIBYTES"M # reserve space for the EFI partition
-        echo t     # change EFI partition type
-        echo 1     # change partition type to EFI System
-        echo n     # new root partition
-        echo 2     # root partition number
-        echo       # start at the end of the EFI partition
-        echo       # reserve the rest of the disk
-        echo w     # write changes
-    ) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
-    read -a SETUP_DISK_EFI <<<$(lsblk -nrbpo name,size,type $SETUP_DISK | grep --color=never "$(($SETUP_EFI_PARTITION_MEBIBYTES*1048576)) part") || quit "Failed to search for the efi partition"
-    test -z $SETUP_DISK_EFI && quit "Failed to identify the efi partition"
-    export SETUP_DISK_EFI
-    read -a SETUP_DISK_ROOT <<<$(lsblk -nrbpo name,size,type $SETUP_DISK | grep --color=never --invert-match "$(($SETUP_EFI_PARTITION_MEBIBYTES*1048576)) part" | grep --color=never --invert-match " disk") || quit "Failed to search for the root partition"
-    test -z $SETUP_DISK_ROOT && quit "Failed to identify the root partition"
-    export SETUP_DISK_ROOT
-    echo "Created EFI partition: $SETUP_DISK_EFI"
-    echo "Created root partition: $SETUP_DISK_ROOT"
+elif test "$SETUP_BOOT_MODE" = "UEFI-32" -o "$SETUP_BOOT_MODE" = "UEFI-64"; then
+    if no_predefined_partitions $(test -n "$SETUP_DISK_EFI"; echo $?) $(test -n "$SETUP_DISK_ROOT"; echo $?) "Error: SETUP_DISK_EFI is not set" "Error: SETUP_DISK_ROOT is not set"; then
+        SETUP_EFI_PARTITION_MEBIBYTES=500
+        (
+            echo g     # new GPT partition table
+            echo n     # new EFI partition
+            echo 1     # EFI partiion number
+            echo       # start at the first sector
+            echo +"$SETUP_EFI_PARTITION_MEBIBYTES"M # reserve space for the EFI partition
+            echo t     # change EFI partition type
+            echo 1     # change partition type to EFI System
+            echo n     # new root partition
+            echo 2     # root partition number
+            echo       # start at the end of the EFI partition
+            echo       # reserve the rest of the disk
+            echo w     # write changes
+        ) | fdisk $SETUP_DISK || quit "Failed to partition disk: $SETUP_DISK"
+        read -a SETUP_DISK_EFI <<<$(lsblk -nrbpo name,size,type $SETUP_DISK | grep --color=never "$(($SETUP_EFI_PARTITION_MEBIBYTES*1048576)) part") || quit "Failed to search for the efi partition"
+        test -z $SETUP_DISK_EFI && quit "Failed to identify the efi partition"
+        export SETUP_DISK_EFI
+        read -a SETUP_DISK_ROOT <<<$(lsblk -nrbpo name,size,type $SETUP_DISK | grep --color=never --invert-match "$(($SETUP_EFI_PARTITION_MEBIBYTES*1048576)) part" | grep --color=never --invert-match " disk") || quit "Failed to search for the root partition"
+        test -z $SETUP_DISK_ROOT && quit "Failed to identify the root partition"
+        export SETUP_DISK_ROOT
+        echo "Created EFI partition: $SETUP_DISK_EFI"
+        echo "Created root partition: $SETUP_DISK_ROOT"
+    fi
     mkfs.fat -F 32 $SETUP_DISK_EFI || quit "Failed to format the EFI partition: $SETUP_DISK_EFI"
     mkfs.ext4 $SETUP_DISK_ROOT || quit "Failed to format the root partition: $SETUP_DISK_ROOT"
     echo "Formatted EFI partition with FAT32"
