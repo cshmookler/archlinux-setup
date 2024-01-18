@@ -6,7 +6,7 @@ arch=("any")
 url="https://st.suckless.org"
 license=("MIT")
 options=("zipman")
-depends=($(pacman -Sgq xorg) "ttf-hack-nerd" "noto-fonts")
+depends=($(pacman -Sgq xorg) "ttf-hack-nerd" "noto-fonts" "noto-fonts-emoji")
 source=("git+https://git.suckless.org/st")
 md5sums=("SKIP")
 

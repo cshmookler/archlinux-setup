@@ -1,0 +1,28 @@
+#!/bin/bash
+
+if test "$1" = "volume"; then
+    if test -z "$2"; then
+        VOLUME_INFO=$(amixer sget Master)
+        VOLUME_LEFT=$(echo "$VOLUME_INFO" | grep --color=never "Left: " | sed -ne "s/.*\[\(.*\)%\] \[.*/\1/p")
+        VOLUME_RIGHT=$(echo "$VOLUME_INFO" | grep --color=never "Right: " | sed -ne "s/.*\[\(.*\)%\] \[.*/\1/p")
+        test "$VOLUME_LEFT" = "$VOLUME_RIGHT" && echo "$VOLUME_LEFT" && exit
+        echo \("$VOLUME_LEFT"l" $VOLUME_RIGHT"r\)
+    elif test "$2" = "status"; then
+        STATUS_INFO=$(amixer sget Master)
+        STATUS_LEFT=$(echo "$STATUS_INFO" | grep --color=never "Left: " | sed -ne "s/.*\] \[\(.*\)\].*/\1/p")
+        STATUS_RIGHT=$(echo "$STATUS_INFO" | grep --color=never "Right: " | sed -ne "s/.*\] \[\(.*\)\].*/\1/p")
+        test "$STATUS_LEFT" = "$STATUS_RIGHT" && echo "$STATUS_LEFT" && exit
+        echo "($STATUS_LEFT"-l" $STATUS_RIGHT"-r")"
+    else
+        amixer sset Master $2
+    fi
+elif test "$1" = "backlight"; then
+    BACKLIGHT_PATH=/sys/class/backlight/intel_backlight
+    if test -z "$2"; then
+        python -c "print(int(100*$(cat $BACKLIGHT_PATH/brightness)/$(cat $BACKLIGHT_PATH/max_brightness)))"
+    else
+        python -c "print(int(max(0, min($(cat $BACKLIGHT_PATH/max_brightness), $(cat $BACKLIGHT_PATH/brightness)$2($3*$(cat $BACKLIGHT_PATH/max_brightness)/100)))))" | tee $BACKLIGHT_PATH/brightness
+    fi
+elif test "$1" = "lock"; then
+    nohup slock </dev/null >/dev/null 2>&1 &
+fi

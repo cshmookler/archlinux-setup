@@ -1,5 +1,5 @@
 [Unit]
-Description=Loads the vim keyboard layout on startup
+Description=Load the vim keyboard layout on startup
 After=multi-user.target
 
 [Service]

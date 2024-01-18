@@ -6,7 +6,7 @@ arch=("any")
 url="https://tools.suckless.org/slstatus"
 license=("ISC")
 options=("zipman")
-depends=($(pacman -Sgq xorg))
+depends=($(pacman -Sgq xorg) "cgs-special-keys")
 source=("git+https://git.suckless.org/slstatus")
 md5sums=("SKIP")
 

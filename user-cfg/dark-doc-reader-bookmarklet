@@ -1,0 +1,26 @@
+javascript:void(function() {
+    document.getElementById('viewer').style.filter = 'invert(70%) contrast(228%) brightness(80%) hue-rotate(180deg)';
+    var styles = `
+        :root {
+            --body-bg-color: rgba(20, 20, 20, 1) !important;
+            --progressBar-color: rgba(10, 10, 10, 1) !important;
+            --progressBar-bg-color: rgba(10, 10, 10, 1) !important;
+            --progressBar-blend-color: rgba(10, 10, 10, 1) !important;
+            --sidebar-narrow-bg-color: rgba(20, 20, 20, 1) !important;
+            --sidebar-toolbar-bg-color: rgba(20, 20, 20, 1) !important;
+            --toolbar-bg-color: rgba(20, 20, 20, 1) !important;
+            --toolbar-border-color: rgba(20, 20, 20, 1) !important;
+            --button-hover-color: rgba(20, 20, 20, 1) !important;
+            --dropdown-btn-bg-color: rgba(20, 20, 20, 1) !important;
+            --field-color: rgba(200, 200, 200, 1) !important;
+            --field-bg-color: rgba(20, 20, 20, 1) !important;
+            --field-border-color: rgba(20, 20, 20, 1) !important;
+            --doorhanger-bg-color: rgba(20, 20, 20, 1) !important;
+            --doorhanger-hover-bg-color: rgba(20, 20, 20, 1) !important;
+            --doorhanger-separator-color: rgba(20, 20, 20, 1) !important;
+        }
+    `;
+    var styleSheet = document.createElement("style");
+    styleSheet.innerText = styles;
+    document.head.appendChild(styleSheet);
+})();

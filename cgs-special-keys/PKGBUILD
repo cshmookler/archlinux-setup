@@ -1,0 +1,14 @@
+pkgname="cgs-special-keys"
+pkgver=20240116
+pkgrel=1
+pkgdesc="Functions for vendor-specific keys"
+arch=("any")
+depends=("systemd" "python" "alsa-utils" "cgs-slock")
+install="$pkgname.install"
+
+package() {
+    mkdir -p $pkgdir/usr/bin/
+    install -Dm755 $startdir/special-keys $pkgdir/usr/bin/
+    mkdir -p $pkgdir/etc/systemd/system/
+    install -Dm644 $startdir/special-keys-backlight.service $pkgdir/etc/systemd/system/
+}

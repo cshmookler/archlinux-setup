@@ -6,12 +6,13 @@ arch=("any")
 url="https://tools.suckless.org/dwm/"
 license=("MIT")
 options=("zipman")
-depends=($(pacman -Sgq xorg))
+depends=($(pacman -Sgq xorg) "cgs-special-keys")
 source=("git+https://git.suckless.org/dwm")
 md5sums=("SKIP")
 
 prepare() {
     cd $srcdir/dwm
+    patch <$startdir/dwm.c.patch
     patch <$startdir/config.def.h.patch
 }
 

@@ -3,6 +3,7 @@ pkgver=20240104
 pkgrel=1
 pkgdesc="A collection of keyboard layouts and mappings for use with vim"
 arch=("any")
+depends=("systemd")
 source=("git+https://github.com/cshmookler/vim_keyboard_layout")
 md5sums=("SKIP")
 install="$pkgname.install"

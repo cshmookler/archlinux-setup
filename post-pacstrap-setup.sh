@@ -40,6 +40,10 @@ echo "Enabling automatic network configuration..."
 systemctl enable NetworkManager || quit "Failed to enable networking"
 
 echo "----------------------------------------"
+echo "Enabling bluetooth..."
+systemctl enable bluetooth.service || quit "Failed to enable bluetooth"
+
+echo "----------------------------------------"
 echo "Enabling the firewall..."
 systemctl enable ufw.service || quit "Failed to enable the ufw daemon"
 
@@ -111,6 +115,7 @@ installpkg $SETUP_USER cgs-ssh-cfg || redtext "Failed to install cgs-ssh-cfg (ex
 if test "$SETUP_HEADLESS" = "false"; then
     installpkg $SETUP_USER cgs-xorg-cfg || redtext "Failed to install cgs-xorg-cfg (exit code: $?)"
     installpkg $SETUP_USER cgs-slock || redtext "Failed to install cgs-slock (exit code: $?)"
+    installpkg $SETUP_USER cgs-special-keys || redtext "Failed to install cgs-special-keys (exit code: $?)"
     installpkg $SETUP_USER cgs-st || redtext "Failed to install cgs-st (exit code: $?)"
     installpkg $SETUP_USER cgs-slstatus || redtext "Failed to install cgs-slstatus (exit code: $?)"
     installpkg $SETUP_USER cgs-dmenu || redtext "Failed to install cgs-dmenu (exit code: $?)"
