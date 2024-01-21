@@ -73,7 +73,7 @@ test -z "$SETUP_HEADLESS" && export SETUP_HEADLESS=false
 test -z "$SETUP_DEVELOPMENT_TOOLS" && export SETUP_DEVELOPMENT_TOOLS=true
 export SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager bash bash-completion man-db man-pages texinfo curl git zip unzip python htop lynx ufw transmission-cli openssh openssl openvpn borg python-llfuse bluez bluez-utils dictd"
 test -z "$SETUP_EXTRA_PACKAGES" && export SETUP_EXTRA_PACKAGES=""
-test "$SETUP_HEADLESS" = "false" && export SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock physlock vlc libreoffice-fresh pulseaudio pulseaudio-alsa pulseaudio-bluetooth alsa-utils xsel xcolor torbrowser-launcher gtkmm3 alsa-lib $SETUP_EXTRA_PACKAGES"
+test "$SETUP_HEADLESS" = "false" && export SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock physlock vlc libreoffice-fresh pulseaudio pulseaudio-alsa pulseaudio-bluetooth alsa-utils xsel xcolor torbrowser-launcher gtkmm3 alsa-lib imagemagick maim qemu-base virt-manager $SETUP_EXTRA_PACKAGES"
 test "$SETUP_DEVELOPMENT_TOOLS" = "true" && export SETUP_EXTRA_PACKAGES="clang pyright lua-language-server bash-language-server aspell aspell-en gradle $SETUP_EXTRA_PACKAGES"
 test -z "$SETUP_TIME_ZONE" && export SETUP_TIME_ZONE="America/Denver"
 test -z "$SETUP_HOSTNAME" && export SETUP_HOSTNAME="arch"

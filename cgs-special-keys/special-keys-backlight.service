@@ -3,7 +3,7 @@ Description=Change file permissions for the backlight brightness file on startup
 After=multi-user.target
 
 [Service]
-ExecStart=chmod 666 /sys/class/backlight/intel_backlight/brightness
+ExecStart=chmod 666 "$BACKLIGHT_BRIGHTNESS"
 
 [Install]
 WantedBy=graphical.target

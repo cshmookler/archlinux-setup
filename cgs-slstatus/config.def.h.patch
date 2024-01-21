@@ -1,6 +1,6 @@
---- config.def.h	2024-01-17 15:05:42.787060226 -0700
-+++ config.def.patch.h	2024-01-17 15:05:42.790393560 -0700
-@@ -64,6 +64,17 @@
+--- config.def.h	2024-01-18 23:04:01.211369399 -0700
++++ config.def.patch.h	2024-01-18 23:04:01.214702732 -0700
+@@ -64,6 +64,18 @@
   * wifi_perc           WiFi signal in percent          interface name (wlan0)
   */
  static const struct arg args[] = {
@@ -9,9 +9,10 @@
 +	/* function          format         argument */
 +        { run_command,       " %s%%v | ",   "special-keys volume" },
 +        { run_command,       "%s | ",       "special-keys volume status" },
-+        { run_command,       "%s%%l | ",    "special-keys backlight" },
++        { run_command,       "%s | ",       "special-keys bluetooth" },
 +        { wifi_perc,         "%s%%w | ",    "wlp108s0" },
 +        { wifi_essid,        "%s | ",       "wlp108s0" },
++        { run_command,       "%s%%l | ",    "special-keys backlight" },
 +        { battery_perc,      "%s%%b | ",    "BAT1" },
 +        { battery_remaining, "%s",          "BAT1" },
 +        { battery_state,     "%s | ",       "BAT1" },

@@ -25,4 +25,15 @@ elif test "$1" = "backlight"; then
     fi
 elif test "$1" = "lock"; then
     nohup slock </dev/null >/dev/null 2>&1 &
+elif test "$1" = "bluetooth"; then
+    BLUETOOTH_CONNECTED=$(bluetoothctl devices Connected)
+    if test -z "$BLUETOOTH_CONNECTED"; then
+        echo "none"
+        exit
+    fi
+    readarray -t BLUETOOTH_CONNECTED_ARRAY <<<"$BLUETOOTH_CONNECTED"
+    while read -r BLUETOOTH_CONNECTED_DEVICE; do
+        BLUETOOTH_CONNECTED_DEVICES="$BLUETOOTH_CONNECTED_DEVICES 🔵 $(cut -d ' ' -f 3- <<<$BLUETOOTH_CONNECTED_DEVICE)"
+    done <<<"$BLUETOOTH_CONNECTED"
+    echo $BLUETOOTH_CONNECTED_DEVICES
 fi

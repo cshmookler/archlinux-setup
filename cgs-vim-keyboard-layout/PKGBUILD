@@ -1,26 +1,16 @@
 pkgname="cgs-vim-keyboard-layout"
-pkgver=20240104
+pkgver=20240120
 pkgrel=1
 pkgdesc="A collection of keyboard layouts and mappings for use with vim"
 arch=("any")
-depends=("systemd")
-source=("git+https://github.com/cshmookler/vim_keyboard_layout")
-md5sums=("SKIP")
+depends=($(pacman -Sgq xorg))
 install="$pkgname.install"
 
-pkgver() {
-    cd $srcdir/vim_keyboard_layout
-    git log -1 --date=format:"%Y%m%d" --format="%ad"
-}
-
 package() {
-    SETUP_VIM_KEYBOARD_LAYOUT_CHROOT_DIR=/etc/vim_keyboard_layout/
-    SETUP_VIM_KEYBOARD_LAYOUT_DIR="$pkgdir/$SETUP_VIM_KEYBOARD_LAYOUT_CHROOT_DIR"
-    mkdir -p $SETUP_VIM_KEYBOARD_LAYOUT_DIR
-    cp $srcdir/vim_keyboard_layout/tty/us.kmap $SETUP_VIM_KEYBOARD_LAYOUT_DIR
-    cp $srcdir/vim_keyboard_layout/tty/us-vim.kmap $SETUP_VIM_KEYBOARD_LAYOUT_DIR
-    cp $srcdir/vim_keyboard_layout/x11/xmodmap $SETUP_VIM_KEYBOARD_LAYOUT_DIR
-    cp $srcdir/vim_keyboard_layout/x11/xmodmap-vim $SETUP_VIM_KEYBOARD_LAYOUT_DIR
-    mkdir -p $pkgdir/etc/systemd/system/
-    bash -uec "export SETUP_VIM_KEYBOARD_LAYOUT_CHROOT_DIR=$SETUP_VIM_KEYBOARD_LAYOUT_CHROOT_DIR; echo \"$(cat $startdir/vim-keyboard-layout.service)\"" >$pkgdir/etc/systemd/system/vim-keyboard-layout.service
+    TTY_LAYOUT=$pkgdir/usr/share/kbd/keymaps/i386/qwerty/us_vim.map
+    mkdir -p $(dirname $TTY_LAYOUT)
+    install -Dm 644 $startdir/us_vim.map $TTY_LAYOUT
+    X_LAYOUT=$pkgdir/usr/share/X11/xkb/symbols/us_vim
+    mkdir -p $(dirname $X_LAYOUT)
+    install -Dm 644 $startdir/us_vim $X_LAYOUT
 }

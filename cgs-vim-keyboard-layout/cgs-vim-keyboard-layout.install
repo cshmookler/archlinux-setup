@@ -1,7 +1,9 @@
 post_install() {
-    systemctl enable vim-keyboard-layout
+    sudo localectl --no-convert set-keymap us_vim
+    sudo localectl --no-convert set-x11-keymap us_vim
 }
 
 pre_remove() {
-    systemctl disable vim-keyboard-layout
+    sudo localectl --no-convert set-keymap us
+    sudo localectl --no-convert set-x11-keymap us
 }

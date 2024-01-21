@@ -52,6 +52,10 @@ echo "Enabling ssh..."
 systemctl enable sshd.service || quit "Failed to enable the ssh daemon"
 
 echo "----------------------------------------"
+echo "Enabling libvirtd..."
+systemctl enable libvirtd.service || quit "Failed to enable the libvirt daemon"
+
+echo "----------------------------------------"
 echo "Adding the post-installation script..."
 SETUP_POST_INSTALL_SCRIPT=/etc/post_install.sh
 echo "ufw enable
@@ -114,6 +118,7 @@ installpkg $SETUP_USER cgs-vim-keyboard-layout || redtext "Failed to install cgs
 installpkg $SETUP_USER cgs-ssh-cfg || redtext "Failed to install cgs-ssh-cfg (exit code: $?)"
 if test "$SETUP_HEADLESS" = "false"; then
     installpkg $SETUP_USER cgs-xorg-cfg || redtext "Failed to install cgs-xorg-cfg (exit code: $?)"
+    installpkg $SETUP_USER cgs-font-prefs || redtext "Failed to install cgs-font-prefs (exit code: $?)"
     installpkg $SETUP_USER cgs-slock || redtext "Failed to install cgs-slock (exit code: $?)"
     installpkg $SETUP_USER cgs-special-keys || redtext "Failed to install cgs-special-keys (exit code: $?)"
     installpkg $SETUP_USER cgs-st || redtext "Failed to install cgs-st (exit code: $?)"
@@ -142,6 +147,15 @@ echo "
 ## Allow members of group $SETUP_SUDO_GROUP to execute any command
 %$SETUP_SUDO_GROUP ALL=(ALL:ALL) ALL" | sudo EDITOR="tee -a" visudo || quit "Failed to give sudo privileges to the \"$SETUP_SUDO_GROUP\" group"
 usermod -aG $SETUP_SUDO_GROUP $SETUP_USER || quit "Failed to give sudo privileges to user \"$SETUP_USER\""
+
+echo "----------------------------------------"
+echo "Permitting the user \"$SETUP_USER\" to use KVM..."
+usermod -aG libvirt $SETUP_USER || quit "Failed to add user \"$SETUP_USER\" to the \"libvirt\" group"
+echo "
+# Allow users in the group \"libvirt\" to use KVM
+unix_sock_group = \"libvirt\"
+uix_sock_rw_perms = \"0770\"
+" >>/etc/libvirt/libvirt.conf || quit "Failed to alow users in the \"libvirt\" group to use KVM"
 
 echo "----------------------------------------"
 echo "Switching ssh to port $SETUP_SSH_PORT and only allowing remote login by users within the group \"$SETUP_SUDO_GROUP\""

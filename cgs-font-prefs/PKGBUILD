@@ -1,0 +1,12 @@
+pkgname="cgs-font-prefs"
+pkgver="20240119"
+pkgrel=1
+pkgdesc="System font preferences"
+arch=("any")
+depends=("ttf-hack-nerd" "noto-fonts" "noto-fonts-emoji")
+
+package() {
+    FONT_CONFIG_DIR=$pkgdir/etc/fonts/conf.d
+    mkdir -p $FONT_CONFIG_DIR/
+    install -Dm 644 $startdir/70-font-prefs.conf $FONT_CONFIG_DIR/
+}

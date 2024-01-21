@@ -1,5 +1,5 @@
 pkgname="cgs-xorg-cfg"
-pkgver=20240104
+pkgver=20240120
 pkgrel=1
 pkgdesc="Configuration for securing Xorg"
 arch=("any")
@@ -7,12 +7,10 @@ depends=($(pacman -Sgq xorg))
 
 package() {
     sudo Xorg :0 -configure
-    SETUP_XORG_CONF=$pkgdir/etc/X11/xorg.conf.d/xorg.conf
+    SETUP_XORG_CONF=$pkgdir/etc/X11/xorg.conf.d/10-display.conf
     mkdir -p $(dirname $SETUP_XORG_CONF)
-    sudo mv /root/xorg.conf.new $SETUP_XORG_CONF
-    echo "Section \"ServerFlags\"
-        Option \"DontVTSwitch\" \"True\"
-        Option \"DontZap\" \"True\"
-EndSection
-" | sudo tee -a $SETUP_XORG_CONF
+    sudo install -Dm 644 /root/xorg.conf.new $SETUP_XORG_CONF
+    sudo rm /root/xorg.conf.new
+    mkdir -p $pkgdir/etc/X11/xorg.conf.d/
+    install -Dm 644 $startdir/20-secure.conf $pkgdir/etc/X11/xorg.conf.d/
 }
