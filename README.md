@@ -50,5 +50,7 @@ curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/setup.
 - [X] Allow optional components of the installation to fail without stopping the installation.
 - [X] Package the custom neovim configuration into its own package.
 - [X] Install yay by default.
-- [ ] Plug OpenVPN dns leak.
+- [ ] Preinstall PIA.
+- [ ] Add more features to slstatus (or rebuild it from scratch).
+- [ ] Make cgs-special more portable (experiences fatal errors within a vm)
 - [ ] Automatically install browser extensions.

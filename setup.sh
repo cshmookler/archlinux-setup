@@ -19,7 +19,7 @@ redtext() {
 
 quit() {
     if ! test -z "$2"; then
-        if exit 0 -eq "$2"; then
+        if test 0 -eq "$2"; then
             greentext "$1"
         else
             redtext "$1"
