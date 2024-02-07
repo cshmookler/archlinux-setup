@@ -15,12 +15,22 @@ quit() {
     exit 1
 }
 
-test -z "$UOFU_UNID" && quit "Error: UOFU_UNID not set"
-test -z "$UOFU_PASSWORD" && quit "Error: UOFU_PASSWORD not set"
-test -z "$UOFU_CA_CERT_PATH" && quit "Error: UOFU_CA_CERT_PATH not set"
+if test -z "$UOFU_UNID"; then
+    echo -n "Enter your uNID: " && read UOFU_UNID || quit "Failed to read uNID"
+    test -z "$UOFU_UNID" && exit
+fi
+if test -z "$UOFU_PASSWORD"; then
+    echo -n "Enter your password: " && read -s UOFU_PASSWORD || quit "Failed to read password"
+    echo ""
+    test -z "$UOFU_PASSWORD" && exit
+fi
+if test -z "$UOFU_CA_CERT_PATH"; then
+    echo -n "Enter the path to your CA certificate: " && read UOFU_CA_CERT_PATH || quit "Failed to read CA certificate"
+    test -z "$UOFU_CA_CERT_PATH" && exit
+fi
 
 echo "Removing conflicting connection profiles..."
-nmcli connection delete UConnect || quit "Failed to remove conflicting connection profiles"
+nmcli connection delete UConnect # Do nothing it this fails
 
 nmcli connection add type wifi con-name UConnect ssid UConnect ipv4.method auto 802-1x.eap peap 802-1x.phase2-auth mschapv2 802-1x.ca-cert "$UOFU_CA_CERT_PATH" 802-1x.identity "$UOFU_UNID" 802-1x.password "$UOFU_PASSWORD" wifi-sec.key-mgmt wpa-eap || quit "Failed to add connection profile for UConnect"
 

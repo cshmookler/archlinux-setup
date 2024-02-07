@@ -1,0 +1,12 @@
+pkgname="cgs-snap"
+pkgver=20240207
+pkgrel=1
+pkgdesc="Wrapper for maim"
+arch=("any")
+depends=("maim")
+
+package() {
+    BIN_DIR=$pkgdir/usr/bin/
+    mkdir -p $BIN_DIR
+    install -Dm755 $startdir/snap $BIN_DIR
+}

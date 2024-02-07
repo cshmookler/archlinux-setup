@@ -128,6 +128,7 @@ if test "$SETUP_HEADLESS" = "false"; then
     installpkg $SETUP_USER cgs-slstatus || redtext "Failed to install cgs-slstatus (exit code: $?)"
     installpkg $SETUP_USER cgs-dmenu || redtext "Failed to install cgs-dmenu (exit code: $?)"
     installpkg $SETUP_USER cgs-dwm || redtext "Failed to install cgs-dwm (exit code: $?)"
+    installpkg $SETUP_USER cgs-snap || redtext "Failed to install cgs-snap (exit code: $?)"
 fi
 if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
     installpkg $SETUP_USER cgs-neovim-nightly || redtext "Failed to install cgs-neovim-nightly (exit code: $?)"
