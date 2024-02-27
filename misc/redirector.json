@@ -1,0 +1,74 @@
+{
+    "createdBy": "Redirector v3.5.3",
+    "createdAt": "2024-02-25T06:35:59.517Z",
+    "redirects": [
+        {
+            "description": "Prefer old reddit over new reddit",
+            "exampleUrl": "https://www.reddit.com/r/all",
+            "exampleResult": "https://old.reddit.com/r/all",
+            "error": null,
+            "includePattern": "https://www.reddit.com/*",
+            "excludePattern": "",
+            "patternDesc": "",
+            "redirectUrl": "https://old.reddit.com/$1",
+            "patternType": "W",
+            "processMatches": "noProcessing",
+            "disabled": true,
+            "grouped": false,
+            "appliesTo": [
+                "main_frame"
+            ]
+        },
+        {
+            "description": "Swap Youtube with Canvas",
+            "exampleUrl": "https://www.youtube.com",
+            "exampleResult": "https://utah.instructure.com/",
+            "error": null,
+            "includePattern": "https://*.youtube.com*",
+            "excludePattern": "",
+            "patternDesc": "",
+            "redirectUrl": "https://utah.instructure.com/",
+            "patternType": "W",
+            "processMatches": "noProcessing",
+            "disabled": false,
+            "grouped": false,
+            "appliesTo": [
+                "main_frame"
+            ]
+        },
+        {
+            "description": "Swap Reddit with Canvas",
+            "exampleUrl": "https://www.reddit.com",
+            "exampleResult": "https://utah.instructure.com/",
+            "error": null,
+            "includePattern": "https://*.reddit.com*",
+            "excludePattern": "",
+            "patternDesc": "",
+            "redirectUrl": "https://utah.instructure.com/",
+            "patternType": "W",
+            "processMatches": "noProcessing",
+            "disabled": false,
+            "grouped": false,
+            "appliesTo": [
+                "main_frame"
+            ]
+        },
+        {
+            "description": "Swap TypeRacer with Canvas",
+            "exampleUrl": "https://play.typeracer.com/",
+            "exampleResult": "https://utah.instructure.com",
+            "error": null,
+            "includePattern": "https://play.typeracer.com*",
+            "excludePattern": "",
+            "patternDesc": "",
+            "redirectUrl": "https://utah.instructure.com",
+            "patternType": "W",
+            "processMatches": "noProcessing",
+            "disabled": false,
+            "grouped": false,
+            "appliesTo": [
+                "main_frame"
+            ]
+        }
+    ]
+}

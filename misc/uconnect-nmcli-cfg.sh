@@ -32,6 +32,7 @@ fi
 echo "Removing conflicting connection profiles..."
 nmcli connection delete UConnect # Do nothing it this fails
 
+echo "Creating connection profile for UConnect..."
 nmcli connection add type wifi con-name UConnect ssid UConnect ipv4.method auto 802-1x.eap peap 802-1x.phase2-auth mschapv2 802-1x.ca-cert "$UOFU_CA_CERT_PATH" 802-1x.identity "$UOFU_UNID" 802-1x.password "$UOFU_PASSWORD" wifi-sec.key-mgmt wpa-eap || quit "Failed to add connection profile for UConnect"
 
 echo "Connecting..."
