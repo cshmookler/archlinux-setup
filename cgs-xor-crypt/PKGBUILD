@@ -4,7 +4,7 @@ pkgrel=1
 pkgdesc="Uses a one-time pad to encrypt and decrypt data"
 arch=("x86_64")
 license=("Zlib")
-depends=("clang" "git" "python" "python-pip")
+makedepends=("clang" "git" "python" "python-pip")
 source=("git+https://github.com/cshmookler/xor_crypt.git")
 md5sums=("SKIP")
 

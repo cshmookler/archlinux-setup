@@ -21,6 +21,14 @@
     {
       "passKeys": "",
       "pattern": "https?://www.falstad.com/*"
+    },
+    {
+      "passKeys": "",
+      "pattern": "https?://play.typeracer.com/*"
+    },
+    {
+      "passKeys": "",
+      "pattern": "https?://lushprojects.com/*"
     }
   ]
 }

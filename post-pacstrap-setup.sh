@@ -59,7 +59,7 @@ echo "----------------------------------------"
 echo "Adding the post-installation script..."
 SETUP_POST_INSTALL_SCRIPT=/etc/post_install.sh
 echo "ufw enable
-ufw limit $SETUP_SSH_PORT
+ufw limit $SETUP_SSH_PORT # ssh port
 ufw allow 51413 # transmission-cli port
 localectl --no-convert set-keymap us_vim
 localectl --no-convert set-x11-keymap us_vim
@@ -136,8 +136,12 @@ if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
     sudo -u $SETUP_USER yay -Sy --noconfirm jdtls || redtext "Failed to install jdtls (exit code: $?)"
     # sudo -u $SETUP_USER yay -Sy --noconfirm swift-mesonlsp || redtext "Failed to install swift-mesonlsp (exit code: $?)"
 fi
-if test "$SETUP_HEADLESS" = "false" && test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
-    sudo -u $SETUP_USER bash -ue user-cfg/user-cfg.sh || redtext "Failed to configure user \"$SETUP_USER\""
+sudo -u $SETUP_USER bash -ue user-cfg/user-cfg-base.sh || redtext "Failed to configure user \"$SETUP_USER\""
+if test "$SETUP_HEADLESS" = "false"; then
+    sudo -u $SETUP_USER bash -ue user-cfg/user-cfg-x.sh || redtext "Failed to configure the X server for user \"$SETUP_USER\""
+fi
+if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
+    sudo -u $SETUP_USER bash -ue user-cfg/user-cfg-dev-tools.sh || redtext "Failed to configure dev tools for user \"$SETUP_USER\""
 fi
 if ! test -f /bin/vim; then
     # Install vim if it or an alternative hasn't already been installed.
