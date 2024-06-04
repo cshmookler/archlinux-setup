@@ -1,5 +1,5 @@
 pkgname="cgs-vim-keyboard-layout"
-pkgver=20240120
+pkgver=20240507
 pkgrel=1
 pkgdesc="A collection of keyboard layouts and mappings for use with vim"
 arch=("any")

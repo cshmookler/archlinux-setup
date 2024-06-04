@@ -3,5 +3,6 @@ xkb_symbols {
 
     key <CAPS> { [ Shift_L ] };
     key <LFSH> { [ Control_L ] };
+    key <RTSH> { [ Escape ] };
     key <LCTL> { [ Caps_Lock ] };
 };
