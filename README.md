@@ -53,4 +53,4 @@ curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/setup.
 - [ ] Preinstall PIA.
 - [ ] Add more features to slstatus (or rebuild it from scratch).
 - [ ] Make cgs-special more portable (experiences fatal errors within a vm)
-- [ ] Automatically install browser extensions.
+- [X] Automatically install browser extensions.

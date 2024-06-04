@@ -59,8 +59,8 @@ echo "----------------------------------------"
 echo "Adding the post-installation script..."
 SETUP_POST_INSTALL_SCRIPT=/etc/post_install.sh
 echo "ufw enable
-ufw limit $SETUP_SSH_PORT # ssh port
-ufw allow 51413 # transmission-cli port
+ufw limit $SETUP_SSH_PORT comment 'ssh'
+ufw allow 51413 comment 'transmission-cli'
 localectl --no-convert set-keymap us_vim
 localectl --no-convert set-x11-keymap us_vim
 systemctl disable post-install.service
