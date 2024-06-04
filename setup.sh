@@ -59,10 +59,9 @@ echo "Sourcing the configuration file..."
 if source config.sh; then
     export $(cut -d= -f1 config.sh)
 else
-    yellowtext "No configuration file found. Downloading a template..."
-    curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/config.sh || quit "Failed to download the configuration template file"
-    yellowtext "Edit config.sh and source this script again to restart the installation"
-    quit "Installation failed. See above for details."
+    yellowtext "Failed to find a configuration file for this installation."
+    yellowtext "A template configuration file can be downloaded by running the following command:"
+    yellowtext "curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/config.sh"
 fi
 
 echo "----------------------------------------"
@@ -73,7 +72,7 @@ test -z "$SETUP_HEADLESS" && export SETUP_HEADLESS=false
 test -z "$SETUP_DEVELOPMENT_TOOLS" && export SETUP_DEVELOPMENT_TOOLS=true
 export SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager bash bash-completion man-db man-pages texinfo curl git zip unzip python htop lynx ufw transmission-cli openssh openssl openvpn borg python-llfuse bluez bluez-utils dictd"
 test -z "$SETUP_EXTRA_PACKAGES" && export SETUP_EXTRA_PACKAGES=""
-test "$SETUP_HEADLESS" = "false" && export SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock physlock vlc libreoffice-fresh pulseaudio pulseaudio-alsa pulseaudio-bluetooth alsa-utils xsel xcolor torbrowser-launcher gtkmm3 alsa-lib firefox imagemagick maim qemu-base virt-manager $SETUP_EXTRA_PACKAGES"
+test "$SETUP_HEADLESS" = "false" && export SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock physlock libreoffice-fresh pulseaudio pulseaudio-alsa pulseaudio-bluetooth alsa-utils xsel xcolor torbrowser-launcher gtkmm3 alsa-lib firefox ffmpeg maim qemu-base virt-manager $SETUP_EXTRA_PACKAGES"
 test "$SETUP_DEVELOPMENT_TOOLS" = "true" && export SETUP_EXTRA_PACKAGES="clang pyright python-black python-virtualenv lua-language-server bash-language-server aspell aspell-en gradle $SETUP_EXTRA_PACKAGES"
 test -z "$SETUP_TIME_ZONE" && export SETUP_TIME_ZONE="America/Denver"
 test -z "$SETUP_HOSTNAME" && export SETUP_HOSTNAME="arch"
