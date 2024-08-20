@@ -131,7 +131,6 @@ if test "$SETUP_HEADLESS" = "false"; then
     installpkg $SETUP_USER cgs-snap || redtext "Failed to install cgs-snap (exit code: $?)"
 fi
 if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
-    installpkg $SETUP_USER cgs-neovim-nightly || redtext "Failed to install cgs-neovim-nightly (exit code: $?)"
     installpkg $SETUP_USER cgs-xor-crypt || redtext "Failed to install cgs-xor-crypt (exit code: $?)"
     sudo -u $SETUP_USER yay -Sy --noconfirm jdtls || redtext "Failed to install jdtls (exit code: $?)"
     # sudo -u $SETUP_USER yay -Sy --noconfirm swift-mesonlsp || redtext "Failed to install swift-mesonlsp (exit code: $?)"
@@ -142,10 +141,6 @@ if test "$SETUP_HEADLESS" = "false"; then
 fi
 if test "$SETUP_DEVELOPMENT_TOOLS" = "true"; then
     sudo -u $SETUP_USER bash -ue user-cfg/user-cfg-dev-tools.sh || redtext "Failed to configure dev tools for user \"$SETUP_USER\""
-fi
-if ! test -f /bin/vim; then
-    # Install vim if it or an alternative hasn't already been installed.
-    pacman -Sy --needed --noconfirm vim || redtext "Failed to install vim"
 fi
 EDITOR="sed -i '$ d'" visudo || quit "Failed to remove sudo privileges from user \"$SETUP_USER\""
 

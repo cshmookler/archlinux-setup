@@ -70,7 +70,7 @@ test -z "$SETUP_PING" && export SETUP_PING=1.1.1.1
 test -z "$SETUP_DISK_MIN_BYTES" && export SETUP_DISK_MIN_BYTES=16000000000
 test -z "$SETUP_HEADLESS" && export SETUP_HEADLESS=false
 test -z "$SETUP_DEVELOPMENT_TOOLS" && export SETUP_DEVELOPMENT_TOOLS=true
-export SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager bash bash-completion man-db man-pages texinfo curl git zip unzip python htop lynx ufw transmission-cli openssh openssl openvpn borg python-llfuse bluez bluez-utils dictd"
+export SETUP_BASE_PACKAGES="base base-devel linux linux-firmware networkmanager bash bash-completion man-db man-pages texinfo curl git zip unzip python htop lynx ufw transmission-cli openssh openssl openvpn borg python-llfuse bluez bluez-utils dictd nvim"
 test -z "$SETUP_EXTRA_PACKAGES" && export SETUP_EXTRA_PACKAGES=""
 test "$SETUP_HEADLESS" = "false" && export SETUP_EXTRA_PACKAGES="xorg xorg-xinit xss-lock physlock libreoffice-fresh pulseaudio pulseaudio-alsa pulseaudio-bluetooth alsa-utils xsel xcolor torbrowser-launcher gtkmm3 alsa-lib firefox ffmpeg maim qemu-base virt-manager $SETUP_EXTRA_PACKAGES"
 test "$SETUP_DEVELOPMENT_TOOLS" = "true" && export SETUP_EXTRA_PACKAGES="clang pyright python-black python-virtualenv lua-language-server bash-language-server aspell aspell-en gradle $SETUP_EXTRA_PACKAGES"
