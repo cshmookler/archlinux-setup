@@ -1,5 +1,5 @@
 pkgname="cgs-dwm"
-pkgver=20230922
+pkgver=20240608
 pkgrel=1
 pkgdesc="Patched dynamic window manager for X"
 arch=("any")
@@ -12,8 +12,8 @@ md5sums=("SKIP")
 
 prepare() {
     cd $srcdir/dwm
+    cp "$startdir/config.h" .
     patch <$startdir/dwm.c.patch
-    patch <$startdir/config.def.h.patch
 }
 
 pkgver() {

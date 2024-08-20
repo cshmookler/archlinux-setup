@@ -15,7 +15,7 @@ cp $SCRIPT_DIR/.bash_profile $USER_HOME
 # Configure the X server
 cp $SCRIPT_DIR/.xinitrc $USER_HOME
 
-# Initialize Firefox and create the default profile
+# Create the default profile for Firefox 
 firefox --first-startup --headless --screenshot /dev/null about:blank
 
 # Get the directory of the default profile for Firefox

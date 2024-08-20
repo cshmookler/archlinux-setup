@@ -51,6 +51,6 @@ curl -O https://raw.githubusercontent.com/cshmookler/archlinux-setup/main/setup.
 - [X] Package the custom neovim configuration into its own package.
 - [X] Install yay by default.
 - [ ] Preinstall PIA.
-- [ ] Add more features to slstatus (or rebuild it from scratch).
-- [ ] Make cgs-special more portable (experiences fatal errors within a vm)
+- [X] Add more features to slstatus (or rebuild it from scratch).
+- [X] Make cgs-special more portable (experiences fatal errors within a vm)
 - [X] Automatically install browser extensions.

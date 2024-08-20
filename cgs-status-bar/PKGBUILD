@@ -1,0 +1,36 @@
+pkgname="cgs-status-bar"
+pkgver=0.0.0
+pkgrel=1
+pkgdesc="Status bar for dwm (https://dwm.suckless.org). Customizable at runtime and updates instantly."
+arch=("x86_64")
+license=("Zlib")
+makedepends=("meson" "gtest" "argparse")
+depends=("libx11" "alsa-lib")
+source=("git+https://github.com/cshmookler/status_bar.git")
+md5sums=("SKIP")
+
+pkgver() {
+    cd "$srcdir/status_bar"
+    git describe --tags
+}
+
+build() {
+    cd "$srcdir/status_bar"
+    arch-meson . build 
+    meson compile -C build 
+}
+
+check() {
+    # Testing fails if any of the status fields are invalid.
+    cd "$srcdir/status_bar"
+    meson test -C build 
+}
+
+package() {
+    cd "$srcdir/status_bar"
+    meson install -C build --destdir "$pkgdir"
+    mkdir -p "$pkgdir/usr/share/licenses/$pkgname/"
+    mkdir -p "$pkgdir/usr/share/doc/$pkgname/"
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/"
+    install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/"
+}

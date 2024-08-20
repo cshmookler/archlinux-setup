@@ -1,16 +1,39 @@
 pkgname="cgs-special-keys"
-pkgver=20240116
+pkgver=0.0.0
 pkgrel=1
-pkgdesc="Functions for vendor-specific keys"
-arch=("any")
-depends=("systemd" "python" "alsa-utils" "cgs-slock")
+pkgdesc="Provides functions for common special (multimedia) keys. Communicates with status_bar (https://github.com/cshmookler/status_bar) for instant visual feedback."
+arch=("x86_64")
+license=("Zlib")
+makedepends=("meson" "gtest" "argparse")
+depends=("alsa-lib" "cgs-status-bar")
+source=("git+https://github.com/cshmookler/special_keys.git")
+md5sums=("SKIP")
 install="$pkgname.install"
 
+pkgver() {
+    cd "$srcdir/special_keys"
+    git describe --tags
+}
+
+build() {
+    cd "$srcdir/special_keys"
+    arch-meson . build 
+    meson compile -C build 
+}
+
+check() {
+    cd "$srcdir/special_keys"
+    meson test -C build 
+}
+
 package() {
-    BACKLIGHT_BRIGHTNESS=/sys/class/backlight/intel_backlight/brightness
-    mkdir -p $pkgdir/usr/bin/
-    install -Dm755 $startdir/special-keys $pkgdir/usr/bin/
-    mkdir -p $pkgdir/etc/systemd/system/
-    bash -uec "export BACKLIGHT_BRIGHTNESS=$BACKLIGHT_BRIGHTNESS; echo \"$(cat $startdir/special-keys-backlight.service)\"" >$srcdir/special-keys-backlight.service
-    install -Dm644 $srcdir/special-keys-backlight.service $pkgdir/etc/systemd/system/special-keys-backlight.service
+    cd "$srcdir/special_keys"
+    meson install -C build --destdir "$pkgdir"
+    mkdir -p "$pkgdir/usr/share/licenses/$pkgname/"
+    mkdir -p "$pkgdir/usr/share/doc/$pkgname/"
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/"
+    install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/"
+    SERVICE_DIR="$pkgdir/etc/systemd/system/"
+    mkdir -p "$SERVICE_DIR"
+    install -Dm644 "$startdir/special-keys-backlight.service" "$SERVICE_DIR"
 }
