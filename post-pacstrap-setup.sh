@@ -117,6 +117,7 @@ else
     quit "Invalid boot mode \"$SETUP_BOOT_MODE\""
 fi
 installpkg $SETUP_USER yay || redtext "Failed to install yay (exit code: $?)"
+sudo -u $SETUP_USER yay -Sy --noconfirm neovim-symlinks || redtext "Failed to install neovim-symlinks (exit code: $?)"
 installpkg $SETUP_USER cgs-vim-keyboard-layout || redtext "Failed to install cgs-vim-keyboard-layout (exit code: $?)"
 installpkg $SETUP_USER cgs-ssh-cfg || redtext "Failed to install cgs-ssh-cfg (exit code: $?)"
 if test "$SETUP_HEADLESS" = "false"; then
